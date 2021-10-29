@@ -24,21 +24,21 @@ app.get(`/room/:room`, (req, res) => {
 
 //* Setup collection => on === event listener
 io.on(`connection`, (socket) => {
-  //* Manage Game Data { roomName { gameCondition } }
+  //* Game Data { roomName, pw?, gameRules? { hostName, playerName, score } }
   const GAME_DATA = {};
 
   //* On join, issue personal id
   socket.emit(`personalId`, socket.id);
 
   //* HOST CREATE ROOM
-  socket.on("create-room", (roomName, playerName) => {
-    //* Room Does Not Exist.
+  socket.on("create-room", ({ roomName, username, password }) => {
     if (io.sockets.adapter.rooms[roomName]) {
       //* Room Exist
       cb(false);
     } else {
+      //* Room Does Not Exist (socket.join(roomName) ???)
       socket.join(roomName);
-      GAME_DATA[roomName] = { host: playerName };
+      GAME_DATA[roomName] = { host: username, password };
       cb(true);
     }
   });

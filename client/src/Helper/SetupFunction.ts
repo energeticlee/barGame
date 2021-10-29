@@ -2,24 +2,27 @@ import { IUserInfo } from "./Interface";
 import { Socket } from "socket.io-client";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { useHistory } from "react-router-dom";
+import { clearMessage } from "./helperFunction";
+
+//* FOR HOST
 
 export const handleCreateRoom = async (
-  username: string,
-  roomName: string,
-  setUsername: React.Dispatch<React.SetStateAction<IUserInfo | undefined>>,
-  setMessage: React.Dispatch<React.SetStateAction<string | undefined>>,
+  userData: IUserInfo | undefined,
+  setMessage: React.Dispatch<React.SetStateAction<string>>,
   socket: Socket<DefaultEventsMap, DefaultEventsMap>
 ) => {
-  const history = useHistory();
-  //* Send socket request
-  socket.emit("create-room", { roomName, username }, (res: boolean) => {
-    if (res) {
-      //* Room Successfully Created
-      setUsername({ username, roomName });
-      history.push("/room"); //* Need params
-    } else {
-      //* Some other error
-      setMessage("Room Taken");
-    }
-  });
+  if (userData) {
+    const history = useHistory();
+    //* Send socket request
+    socket.emit("create-room", userData, (res: boolean) => {
+      if (res) {
+        //* Room Successfully Created
+        history.push(`/room/${userData.roomName}`); //* Need params
+      } else {
+        //* Some other error
+        setMessage("Room Taken");
+        clearMessage(setMessage, 2000);
+      }
+    });
+  }
 };

@@ -1,11 +1,14 @@
 import { FC } from "react";
 import { Link } from "react-router-dom";
 import { IRouteButton } from "../Helper/Interface";
+import { Button } from "@mui/material";
 
 const RouteButton: FC<IRouteButton> = ({ text, routeTo }) => {
   return (
     <Link to={routeTo}>
-      <button>{text}</button>
+      <Button fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+        {text}
+      </Button>
     </Link>
   );
 };
