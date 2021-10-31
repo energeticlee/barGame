@@ -5,7 +5,7 @@ import {
   useWaitRoomSocket,
 } from "../Helper/customHooks";
 import { UseStateContext } from "../store";
-import { IUserInfo } from "../Helper/Interface";
+import { IUserInfo, IAvailableGame } from "../Helper/Interface";
 import {
   Container,
   Box,
@@ -19,7 +19,7 @@ import {
 
 const WaitingRoom = () => {
   const { state, useDisSelectedGame, isHostState } = UseStateContext();
-  const { playerStatus, selectedGame, message } = state;
+  const { playerStatus, selectedGame, message, availableGames } = state;
   const { roomName } = useParams<{ roomName?: string }>();
 
   const [isHost, setIsHost] = isHostState();
@@ -65,10 +65,20 @@ const WaitingRoom = () => {
             required
             fullWidth
             id="selectGame"
-            value={selectedGame}
+            value={selectedGame ? selectedGame : ""}
             onChange={(e) => useDisSelectedGame(e.target.value)}
             sx={{ mb: 2, textAlign: "left" }}
           >
+            {availableGames &&
+              availableGames.map(({ gameName }: IAvailableGame, id) => {
+                return (
+                  <MenuItem key={id} value={gameName}>
+                    {gameName}
+                  </MenuItem>
+                );
+              })}
+          </Select>
+          {/* DISPLAY TABLE HERE
             {playerStatus &&
               playerStatus.map(
                 ({ username, readyState }: IUserInfo, id: number) => {
@@ -83,8 +93,7 @@ const WaitingRoom = () => {
                     </>
                   );
                 }
-              )}
-          </Select>
+              )} */}
           {isHost && (
             <Button
               fullWidth

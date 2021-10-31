@@ -4,17 +4,15 @@ import {
   useState,
   useContext,
   ReactNode,
-  Reducer,
 } from "react";
 import { IUserInfo, IAvailableGame, IRoomInfo } from "./Helper/Interface";
 import io, { Socket } from "socket.io-client";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 //* App level state management
-const socket = io(`http://localhost:5050`, { transports: [`websocket`] });
 
 //* Host setup
 
-export enum Actions {
+enum Actions {
   setUserData = "setUserData",
   setPlayerStatus = "setPlayerStatus",
   setRoomInfo = "setRoomInfo",
@@ -38,7 +36,7 @@ interface IAction {
   payload:
     | string
     | number
-    | IAvailableGame
+    | IAvailableGame[]
     | IUserInfo
     | IUserInfo[]
     | IRoomInfo;
@@ -70,9 +68,7 @@ const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
     case Actions.setAvailableGames:
       return {
         ...state,
-        availableGames: state.availableGames
-          ? [...state.availableGames, payload as IAvailableGame]
-          : [payload as IAvailableGame],
+        availableGames: payload as IAvailableGame[],
       };
 
     case Actions.setSelectedGame:
@@ -86,7 +82,7 @@ const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
   }
 };
 
-const useStore = (intial: IReducerState) => {
+export const useStore = (intial: IReducerState) => {
   const [state, dispatch] = useReducer(reducerFunc, intial);
 
   const useDisRoomInfo = (payload: IRoomInfo) => {
@@ -101,8 +97,11 @@ const useStore = (intial: IReducerState) => {
     dispatch({ type: Actions.setPlayerStatus, payload });
   };
 
-  const useDisAvailableGames = (payload: IAvailableGame) => {
-    dispatch({ type: Actions.setAvailableGames, payload });
+  const useDisAvailableGames = (payload: IAvailableGame[]) => {
+    dispatch({
+      type: Actions.setAvailableGames,
+      payload,
+    });
   };
 
   const useDisSelectedGame = (payload: string) => {
@@ -140,6 +139,8 @@ const ContextData = createContext<reducerType | null>(null)!;
 export const UseStateContext = () => useContext(ContextData)!;
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
+  const socket = io(`http://localhost:5050`, { transports: [`websocket`] });
+
   return (
     <ContextData.Provider value={useStore({ socket })}>
       {children}

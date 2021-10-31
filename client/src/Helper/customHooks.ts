@@ -3,23 +3,15 @@ import { useHistory } from "react-router-dom";
 import { IUserInfo } from "./Interface";
 import { UseStateContext } from "../store";
 
-const {
-  state,
-  useDisMessage,
-  useClearMessage,
-  useDisPlayerStatus,
-  useDisAvailableGames,
-} = UseStateContext();
-const { socket, userData, roomInfo } = state;
-const history = useHistory();
-
 //* DIRECTORY
 //? useFetchGames
 //? useWaitRoomSocket
 //? useHandleReady
-//? useCreateRoom
 
 export const useFetchGames = () => {
+  const { useDisMessage, useClearMessage, useDisAvailableGames } =
+    UseStateContext();
+
   useEffect(() => {
     const fetchGames = async () => {
       const res = await fetch("http://localhost:5050/api/games/all-games", {
@@ -40,6 +32,9 @@ export const useFetchGames = () => {
 };
 
 export const useWaitRoomSocket = () => {
+  const { state, useDisPlayerStatus } = UseStateContext();
+  const { socket } = state;
+
   useEffect(() => {
     socket.on("new-join", (data: IUserInfo[]) => {
       useDisPlayerStatus(data);
@@ -52,6 +47,9 @@ export const useWaitRoomSocket = () => {
 };
 
 export const useHandleReady = async (roomName: string) => {
+  const { state, useDisMessage, useClearMessage } = UseStateContext();
+  const { socket, userData, roomInfo } = state;
+
   //* Userdata validation
   if (roomInfo) {
     //* Send socket request
@@ -64,27 +62,6 @@ export const useHandleReady = async (roomName: string) => {
           //* Set Ready Successful
         } else {
           //* Error
-          useDisMessage(res.msg);
-          useClearMessage(2000);
-        }
-      }
-    );
-  }
-};
-
-export const useCreateRoom = async () => {
-  //* Send socket request
-  if (roomInfo) {
-    socket.emit(
-      "create-room",
-      userData,
-      (res: { status: boolean; msg: string; data: IUserInfo[] }) => {
-        if (res.status) {
-          //* Room Successfully Created
-          useDisPlayerStatus(res.data);
-          history.push(`/room/${roomInfo.roomName}`);
-        } else {
-          //* Some other error
           useDisMessage(res.msg);
           useClearMessage(2000);
         }

@@ -37,11 +37,14 @@ io.on(`connection`, (socket) => {
 
   //* HOST CREATE ROOM (DONE)
   socket.on("create-room", ({ roomName, username, password }, cb) => {
+    console.log("HITIN");
     if (io.sockets.adapter.rooms[roomName]) {
+      console.log("HITINO");
       //* Room Exist
       cb({ status: false, msg: "Room Taken" });
     } else {
       //* Room Does Not Exist (socket.join(roomName) ???)
+      console.log("HITINOY");
       socket.join(roomName);
       GAME_DATA[roomName] = {
         host: username,
@@ -71,11 +74,15 @@ io.on(`connection`, (socket) => {
     if (GAME_DATA[roomName]) {
       const playerStatus = GAME_DATA[roomName].playerStatus;
       //* UPDATE USER
-      const targetIndex = playerStatus.findIndex(p => p.username === username)
-      playerStatus.splice(targetIndex, 1, { username, readyState = !readyState })
-      
-      socket.emit("player-status", playerStatus);
+      const targetIndex = playerStatus.findIndex(
+        (p) => p.username === username
+      );
+      playerStatus.splice(targetIndex, 1, {
+        username,
+        readyState: !readyState,
+      });
 
+      socket.emit("player-status", playerStatus);
     } else cb({ status: false, msg: "Invalid Room" });
   });
 

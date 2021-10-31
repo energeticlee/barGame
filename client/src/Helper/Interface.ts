@@ -30,7 +30,7 @@ export interface ISetupButton {
 }
 
 export interface IAvailableGame {
-  id: string;
+  gameId: number;
   gameName: string;
   gameSetup: string;
   howToPlay: string;

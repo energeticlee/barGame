@@ -1,4 +1,6 @@
+import { useHistory } from "react-router-dom";
 import { UseStateContext } from "../store";
+import { IUserInfo } from "../Helper/Interface";
 import {
   Container,
   Box,
@@ -7,11 +9,39 @@ import {
   CssBaseline,
   TextField,
 } from "@mui/material";
-import { useCreateRoom } from "../Helper/customHooks";
 
 const HostSetup = () => {
-  const { state, useDisUserData, useDisRoomInfo } = UseStateContext();
-  const { message } = state;
+  const {
+    state,
+    useDisMessage,
+    useClearMessage,
+    useDisPlayerStatus,
+    useDisUserData,
+    useDisRoomInfo,
+  } = UseStateContext();
+  const { socket, userData, roomInfo, message } = state;
+  const history = useHistory();
+
+  //  Send socket request
+  const handleCreate = () => {
+    if (roomInfo) {
+      socket.emit(
+        "create-room",
+        userData,
+        (res: { status: boolean; msg: string; data: IUserInfo[] }) => {
+          if (res.status) {
+            //* Room Successfully Created
+            useDisPlayerStatus(res.data);
+            history.push(`/room/${roomInfo.roomName}`);
+          } else {
+            //* Some other error
+            useDisMessage(res.msg);
+            useClearMessage(2000);
+          }
+        }
+      );
+    }
+  };
 
   return (
     <>
@@ -70,7 +100,7 @@ const HostSetup = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
-            onClick={useCreateRoom}
+            onClick={handleCreate}
           >
             CREATE!
           </Button>
