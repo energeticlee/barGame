@@ -8,7 +8,7 @@ const path = require(`path`);
 const InBetween = require("./GameLogic/inBetween").default;
 const initialiseGame = require("./GameLogic/initialiseGame").default;
 
-const PORT = 5000;
+const PORT = 5050;
 
 // MIDDLEWARE
 app.use(cors());
@@ -16,22 +16,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, `public`)));
 
-app.get(`/room/:room`, (req, res) => {
-  //* First user create unique room name
-  const roomId = req.params.room;
-  res.status(200).json({ roomId });
+//* REQUIRE CONTROLLER | EXPRESS ROUTING
+const games = require("./controllers/games");
+
+//* ROUTES
+app.use("/api/games", games);
+
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "./client", "index.html"));
 });
 
 //* Setup collection => on === event listener
 io.on(`connection`, (socket) => {
   //* Game Data { roomName, pw?, gameRules? { hostName, playerName, score } }
   const GAME_DATA = {};
+  console.log("GAME_DATA: ", GAME_DATA);
 
-  //* On join, issue personal id
-  socket.emit(`personalId`, socket.id);
+  //! No io.to() => Don't need socket.id
+  // socket.emit(`personalId`, socket.id);
 
   //* HOST CREATE ROOM
-  socket.on("create-room", ({ roomName, username, password }) => {
+  socket.on("create-room", ({ roomName, username, password }, cb) => {
     if (io.sockets.adapter.rooms[roomName]) {
       //* Room Exist
       cb(false);
@@ -39,7 +44,7 @@ io.on(`connection`, (socket) => {
       //* Room Does Not Exist (socket.join(roomName) ???)
       socket.join(roomName);
       GAME_DATA[roomName] = { host: username, password };
-      cb(true);
+      cb(GAME_DATA[roomName]);
     }
   });
 
@@ -65,10 +70,10 @@ io.on(`connection`, (socket) => {
   });
 
   //* HOST INITIALISE GAME START
-  socket.on("initialise-game", (roomName, selectedGame, cb) => {
+  socket.on("initialise-game", (roomName, selectedGame, playersInfo, cb) => {
     switch (selectedGame) {
       case "inBetween":
-        initialiseGame(GAME_DATA, roomName, InBetween);
+        initialiseGame(GAME_DATA[roomName], playersInfo, InBetween);
         cb(true);
         break;
       default:

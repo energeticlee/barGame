@@ -1,7 +1,5 @@
-import { useContext, useState } from "react";
-import { handleCreateRoom } from "../Helper/SetupFunction";
-import { ContextPackage } from "../App";
-import { IUserInfo } from "../Helper/Interface";
+import { useHistory } from "react-router-dom";
+import { UseStateContext } from "../store";
 import {
   Container,
   Box,
@@ -10,14 +8,26 @@ import {
   CssBaseline,
   TextField,
 } from "@mui/material";
-interface Props {}
 
-const HostSetup = (props: Props) => {
-  const [userData, setUserData] = useState<IUserInfo | undefined>();
-  const [message, setMessage] = useState("");
-  const ContactData = useContext(ContextPackage);
-  if (!ContactData) return null;
-  const { socket } = ContactData;
+const HostSetup = () => {
+  const { state, useDisMessage, useDisUserData, useClearMessage } =
+    UseStateContext();
+  const { socket, userData, message } = state;
+  const history = useHistory();
+
+  const handleCreateRoom = async () => {
+    //* Send socket request
+    socket.emit("create-room", userData, (res: boolean) => {
+      if (res) {
+        //* Room Successfully Created
+        history.push(`/room/${userData.roomName}`);
+      } else {
+        //* Some other error
+        useDisMessage("Room Taken");
+        useClearMessage(2000);
+      }
+    });
+  };
 
   return (
     <>
@@ -46,9 +56,7 @@ const HostSetup = (props: Props) => {
             name="username"
             sx={{ mb: 2 }}
             autoFocus
-            onChange={(e) =>
-              setUserData((data) => ({ ...data, username: e.target.value }))
-            }
+            onChange={(e) => useDisUserData({ username: e.target.value })}
           />
           <TextField
             margin="normal"
@@ -59,27 +67,23 @@ const HostSetup = (props: Props) => {
             name="roomName"
             sx={{ mb: 2 }}
             autoFocus
-            onChange={(e) =>
-              setUserData((data) => ({ ...data, roomName: e.target.value }))
-            }
+            onChange={(e) => useDisUserData({ roomName: e.target.value })}
           />
           <TextField
             margin="normal"
             fullWidth
             id="password"
-            label="Password (option)"
+            label="Password (optional)"
             name="password"
             sx={{ mb: 2 }}
             autoFocus
-            onChange={(e) =>
-              setUserData((data) => ({ ...data, password: e.target.value }))
-            }
+            onChange={(e) => useDisUserData({ password: e.target.value })}
           />
           <Button
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
-            onClick={() => handleCreateRoom(userData, setMessage, socket)}
+            onClick={handleCreateRoom}
           >
             CREATE!
           </Button>

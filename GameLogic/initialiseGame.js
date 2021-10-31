@@ -1,8 +1,8 @@
-const initialiseGame = (gameData, roomName, gameFunc) => {
-  gameData[roomName] = {
-    ...gameData[roomName],
-    selectedGame: new gameFunc(),
+const initialiseGame = (gameRoom, playersInfo, gameFunc) => {
+  gameRoom = {
+    ...gameRoom,
+    selectedGame: new gameFunc(playersInfo),
   };
 };
 
-export default initialiseGame;
+module.exports = initialiseGame;

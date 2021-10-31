@@ -10,6 +10,7 @@ export interface IUserInfo {
   username?: string;
   roomName?: string;
   password?: string;
+  readyState?: boolean;
 }
 
 //* BUTTON INTERFACE
@@ -21,4 +22,11 @@ export interface IRouteButton {
 export interface ISetupButton {
   text: string;
   routeTo: string;
+}
+
+export interface IAvailableGame {
+  id: string;
+  gameName: string;
+  gameSetup: string;
+  howToPlay: string;
 }

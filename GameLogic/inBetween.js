@@ -1,11 +1,24 @@
+class Player {
+  constructor(player, buyin) {
+    this.playerName = player;
+    this.buyin = buyin;
+    this.winnings = 0;
+  }
+}
+
 class InBetween {
-  constructor() {
+  constructor(playersInfo) {
     this.currentDeck = this.newDeck();
     this.issuedCards = [];
     this.middleCard;
+    this.pot;
+    this.turn = 0; //* Index of array
+    this.gameStatus = this.populatePlayers(playersInfo);
   }
+  //* Player tracker: turn, players [{ playerName, buyin, winnings }]
 
   issueTwoCards = () => {
+    if (this.currentDeck.length > 10) this.newDeck();
     //* display 2 option with currentDeck
     const cardOne = this.drawACard();
     const cardTwo = this.drawACard();
@@ -43,6 +56,27 @@ class InBetween {
     }
     return result;
   };
+
+  populatePlayers = (players) => {
+    let playerList = [];
+    return players.forEach((player) => playerList.push(new Player(player)));
+  };
+
+  newPlayer = (playerName, buyin) => {
+    new Player(playerName, buyin);
+  };
 }
 
-export default InBetween;
+module.exports = InBetween;
+
+//* Game condition
+//* Start Game = new Inbetween(playerList) { player, buyin }
+//* Player take turns to play (if turn, wait for player to act)
+
+//* issueTwoCards
+// on player turn, issue two cards
+
+//* attemptBetween
+// Only accessable when bet committed
+
+//* Host leave, transfer host else random pick new host

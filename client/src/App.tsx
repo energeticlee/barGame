@@ -1,20 +1,12 @@
-import React, { useEffect, useState, useRef, createContext } from "react";
 import { Switch, Route } from "react-router-dom";
-import io from "socket.io-client";
 import "./App.css";
 import GameLobby from "./Pages/GameLobby";
 import HostSetup from "./Pages/HostSetup";
 import PlayerSetup from "./Pages/PlayerSetup";
-import { IUserInfo, IAppContext } from "./Helper/Interface";
-
-export const ContextPackage = createContext<IAppContext | null>(null);
-const socket = io(`http://localhost:5000`, { transports: [`websocket`] });
-const ContextData: IAppContext = {
-  socket,
-};
+import { ContextProvider } from "./store";
+import WaitingRoom from "./Pages/WaitingRoom";
 
 function App() {
-  const [userInfo, setUserInfo] = useState<IUserInfo | undefined>();
   // useEffect(() => {
   //   //* Listening for host game change
   //   socket.on("game-change", (selectedGame) => {
@@ -23,16 +15,16 @@ function App() {
   // }, []);
 
   return (
-    <ContextPackage.Provider value={ContextData}>
+    <ContextProvider>
       <div className="App">
         <Switch>
           <Route exact path="/" component={GameLobby} />
           <Route path="/host-setup" component={HostSetup} />
           <Route path="/player-setup" component={PlayerSetup} />
-          <Route path="/room/:roomName" />
+          <Route path="/room/:roomName" component={WaitingRoom} />
         </Switch>
       </div>
-    </ContextPackage.Provider>
+    </ContextProvider>
   );
 }
 
