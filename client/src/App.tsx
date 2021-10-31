@@ -7,13 +7,6 @@ import { ContextProvider } from "./store";
 import WaitingRoom from "./Pages/WaitingRoom";
 
 function App() {
-  // useEffect(() => {
-  //   //* Listening for host game change
-  //   socket.on("game-change", (selectedGame) => {
-  //     setSelectedGame(selectedGame);
-  //   });
-  // }, []);
-
   return (
     <ContextProvider>
       <div className="App">

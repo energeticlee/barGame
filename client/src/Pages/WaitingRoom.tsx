@@ -1,55 +1,43 @@
-import { useContext, useState } from "react";
-import { useParams, useHistory } from "react-router-dom";
-import { useFetchGames } from "../Helper/customHooks";
+import { useParams } from "react-router-dom";
+import {
+  useFetchGames,
+  useHandleReady,
+  useWaitRoomSocket,
+} from "../Helper/customHooks";
 import { UseStateContext } from "../store";
-import { IAvailableGame } from "../Helper/Interface";
-import { clearMessage } from "../Helper/helperFunction";
+import { IUserInfo } from "../Helper/Interface";
 import {
   Container,
   Box,
   Button,
   Typography,
   CssBaseline,
-  TextField,
   InputLabel,
   Select,
   MenuItem,
 } from "@mui/material";
 
-interface Props {}
+const WaitingRoom = () => {
+  const { state, useDisSelectedGame, isHostState } = UseStateContext();
+  const { playerStatus, selectedGame, message } = state;
+  const { roomName } = useParams<{ roomName?: string }>();
 
-const WaitingRoom = (props: Props) => {
-  const { roomName } = useParams<{ roomName: string }>();
-  const {
-    state,
-    useDisMessage,
-    useDisAvailableGames,
-    useDisSelectedGame,
-    useClearMessage,
-  } = UseStateContext();
-  const { socket, userData, selectedGame, message, availableGames } = state;
-  const history = useHistory();
+  const [isHost, setIsHost] = isHostState();
 
-  useFetchGames(useDisAvailableGames);
+  useFetchGames();
+  useWaitRoomSocket();
 
-  //* Listen for READY
+  //* Listen for READY (Update backend game state)
   //* if all player ready, startGame enabled
   //* initialise game
   //* route to game board
 
-  const handleStartGame = async () => {
-    if (userData) {
-      //* Send socket request
-      socket.emit("create-room", userData, (res: boolean) => {
-        if (res) {
-          //* Room Successfully Created
-          history.push(`/room/${userData.roomName}`); //* Need params
-        } else {
-          //* Some other error
-          useDisMessage("Room Taken");
-          useClearMessage(2000);
-        }
-      });
+  //* Check if all players are ready
+  const allPlayerReady = () => {
+    if (playerStatus) {
+      return !Object.values(playerStatus).filter((playerState) => {
+        return playerState.readyState === false;
+      }).length;
     }
   };
 
@@ -81,24 +69,33 @@ const WaitingRoom = (props: Props) => {
             onChange={(e) => useDisSelectedGame(e.target.value)}
             sx={{ mb: 2, textAlign: "left" }}
           >
-            {availableGames &&
-              availableGames.map((game: IAvailableGame, id: number) => {
-                return (
-                  <MenuItem key={id} value={game.gameName}>
-                    {game.gameName}
-                  </MenuItem>
-                );
-              })}
+            {playerStatus &&
+              playerStatus.map(
+                ({ username, readyState }: IUserInfo, id: number) => {
+                  return (
+                    <>
+                      <MenuItem key={id} value={username}>
+                        {username}
+                      </MenuItem>
+                      <Button disabled={readyState}>
+                        {readyState ? "READY!" : "waiting..."}
+                      </Button>
+                    </>
+                  );
+                }
+              )}
           </Select>
-
-          <Button
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-            onClick={handleStartGame}
-          >
-            CREATE!
-          </Button>
+          {isHost && (
+            <Button
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              disabled={!allPlayerReady()}
+              onClick={() => useHandleReady(roomName!)}
+            >
+              CREATE!
+            </Button>
+          )}
         </Box>
       </Container>
     </>

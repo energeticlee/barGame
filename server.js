@@ -28,40 +28,58 @@ app.get("/*", (req, res) => {
 
 //* Setup collection => on === event listener
 io.on(`connection`, (socket) => {
-  //* Game Data { roomName, pw?, gameRules? { hostName, playerName, score } }
+  //* Game Data { roomName, pw?, gameRules? { hostName, playerInfo, score } }
   const GAME_DATA = {};
   console.log("GAME_DATA: ", GAME_DATA);
 
   //! No io.to() => Don't need socket.id
   // socket.emit(`personalId`, socket.id);
 
-  //* HOST CREATE ROOM
+  //* HOST CREATE ROOM (DONE)
   socket.on("create-room", ({ roomName, username, password }, cb) => {
     if (io.sockets.adapter.rooms[roomName]) {
       //* Room Exist
-      cb(false);
+      cb({ status: false, msg: "Room Taken" });
     } else {
       //* Room Does Not Exist (socket.join(roomName) ???)
       socket.join(roomName);
-      GAME_DATA[roomName] = { host: username, password };
-      cb(GAME_DATA[roomName]);
+      GAME_DATA[roomName] = {
+        host: username,
+        password,
+        playerStatus: [{ username, readyState: true }],
+      };
+      cb({ status: true, data: GAME_DATA[roomName].playerStatus });
     }
   });
 
-  //* PLAYER JOIN ROOM
-  socket.on(`join-room`, (roomName, playerName, cb) => {
+  //* PLAYER JOIN ROOM (NOT DONE)
+  socket.on(`join-room`, (roomName, playerInfo, cb) => {
     if (io.sockets.adapter.rooms[roomName]) {
       //* Room exist
       socket.join(roomName);
       GAME_DATA[roomName] = {
         ...GAME_DATA[roomName],
-        player: [...GAME_DATA[roomName].player, playerName],
+        players: [...GAME_DATA[roomName].players, playerInfo],
       };
-      cb(true);
+      socket.emit("new-join", GAME_DATA[roomName].player);
+      // cb(true);
     } else cb(false); //* INVALID ROOM
   });
 
-  //* On host game change
+  //* PLAYER SET READY (DONE)
+  socket.on("set-ready", ({ username, readyState }, roomName, cb) => {
+    if (GAME_DATA[roomName]) {
+      const playerStatus = GAME_DATA[roomName].playerStatus;
+      //* UPDATE USER
+      const targetIndex = playerStatus.findIndex(p => p.username === username)
+      playerStatus.splice(targetIndex, 1, { username, readyState = !readyState })
+      
+      socket.emit("player-status", playerStatus);
+
+    } else cb({ status: false, msg: "Invalid Room" });
+  });
+
+  //* HOST CHANGE GAME (NOT DONE)
   socket.on("change-game", (selectedGame, roomName, hostName, cb) => {
     //* Validate if host send request
     if ((GAME_DATA[roomName].host = hostName))
@@ -69,7 +87,18 @@ io.on(`connection`, (socket) => {
     else cb(false); //* NOT A HOST
   });
 
-  //* HOST INITIALISE GAME START
+  //* HOST START GAME (NOT DONE)
+  socket.on(`start-game`, (data) => {
+    //? Change all user component to game board
+    //? How to manage player turn?
+    io.to(data.userToCall).emit(`requestToJoin`, {
+      signal: data.signalData,
+      from: data.from,
+      name: data.name,
+    });
+  });
+
+  //* HOST INITIALISE GAME START (NOT DONE)
   socket.on("initialise-game", (roomName, selectedGame, playersInfo, cb) => {
     switch (selectedGame) {
       case "inBetween":
@@ -81,23 +110,12 @@ io.on(`connection`, (socket) => {
     }
   });
 
-  //* Only host can start game
-  socket.on(`start-game`, (data) => {
-    //? Change all user component to game board
-    //? How to manage player turn?
-    io.to(data.userToCall).emit(`requestToJoin`, {
-      signal: data.signalData,
-      from: data.from,
-      name: data.name,
-    });
-  });
-
-  //? kill all on disconnect?
+  //? kill all on disconnect? (NOT DONE)
   socket.on(`disconnect`, () => {
     socket.broadcast.emit(`callEnded`);
   });
 
-  //*
+  //* (NOT DONE)
   socket.on(`answerCall`, (data) => {
     io.to(data.to).emit(`callAccepted`, data.signal);
   });

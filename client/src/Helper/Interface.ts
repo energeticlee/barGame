@@ -8,9 +8,14 @@ export interface IAppContext {
 
 export interface IUserInfo {
   username?: string;
+  readyState?: boolean;
+}
+
+export interface IRoomInfo {
+  host?: string;
   roomName?: string;
   password?: string;
-  readyState?: boolean;
+  selectedGame?: string;
 }
 
 //* BUTTON INTERFACE

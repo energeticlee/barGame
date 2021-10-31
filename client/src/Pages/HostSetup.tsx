@@ -1,4 +1,3 @@
-import { useHistory } from "react-router-dom";
 import { UseStateContext } from "../store";
 import {
   Container,
@@ -8,26 +7,11 @@ import {
   CssBaseline,
   TextField,
 } from "@mui/material";
+import { useCreateRoom } from "../Helper/customHooks";
 
 const HostSetup = () => {
-  const { state, useDisMessage, useDisUserData, useClearMessage } =
-    UseStateContext();
-  const { socket, userData, message } = state;
-  const history = useHistory();
-
-  const handleCreateRoom = async () => {
-    //* Send socket request
-    socket.emit("create-room", userData, (res: boolean) => {
-      if (res) {
-        //* Room Successfully Created
-        history.push(`/room/${userData.roomName}`);
-      } else {
-        //* Some other error
-        useDisMessage("Room Taken");
-        useClearMessage(2000);
-      }
-    });
-  };
+  const { state, useDisUserData, useDisRoomInfo } = UseStateContext();
+  const { message } = state;
 
   return (
     <>
@@ -56,7 +40,10 @@ const HostSetup = () => {
             name="username"
             sx={{ mb: 2 }}
             autoFocus
-            onChange={(e) => useDisUserData({ username: e.target.value })}
+            onChange={(e) => {
+              useDisUserData({ username: e.target.value });
+              useDisRoomInfo({ host: e.target.value });
+            }}
           />
           <TextField
             margin="normal"
@@ -67,7 +54,7 @@ const HostSetup = () => {
             name="roomName"
             sx={{ mb: 2 }}
             autoFocus
-            onChange={(e) => useDisUserData({ roomName: e.target.value })}
+            onChange={(e) => useDisRoomInfo({ roomName: e.target.value })}
           />
           <TextField
             margin="normal"
@@ -77,13 +64,13 @@ const HostSetup = () => {
             name="password"
             sx={{ mb: 2 }}
             autoFocus
-            onChange={(e) => useDisUserData({ password: e.target.value })}
+            onChange={(e) => useDisRoomInfo({ password: e.target.value })}
           />
           <Button
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
-            onClick={handleCreateRoom}
+            onClick={useCreateRoom}
           >
             CREATE!
           </Button>
