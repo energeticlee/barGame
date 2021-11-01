@@ -3,9 +3,11 @@ import {
   useFetchGames,
   useHandleReady,
   useWaitRoomSocket,
+  allPlayerReady,
+  useGetPlayers,
 } from "../Helper/customHooks";
 import { UseStateContext } from "../store";
-import { IUserInfo, IAvailableGame } from "../Helper/Interface";
+import { IAvailableGame } from "../Helper/Interface";
 import {
   Container,
   Box,
@@ -16,6 +18,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import WaitingTable from "../Components/WaitingTable";
 
 const WaitingRoom = () => {
   const { state, useDisSelectedGame, isHostState } = UseStateContext();
@@ -25,21 +28,13 @@ const WaitingRoom = () => {
   const [isHost, setIsHost] = isHostState();
 
   useFetchGames();
+  useGetPlayers(roomName!);
   useWaitRoomSocket();
 
   //* Listen for READY (Update backend game state)
   //* if all player ready, startGame enabled
   //* initialise game
   //* route to game board
-
-  //* Check if all players are ready
-  const allPlayerReady = () => {
-    if (playerStatus) {
-      return !Object.values(playerStatus).filter((playerState) => {
-        return playerState.readyState === false;
-      }).length;
-    }
-  };
 
   return (
     <>
@@ -78,22 +73,7 @@ const WaitingRoom = () => {
                 );
               })}
           </Select>
-          {/* DISPLAY TABLE HERE
-            {playerStatus &&
-              playerStatus.map(
-                ({ username, readyState }: IUserInfo, id: number) => {
-                  return (
-                    <>
-                      <MenuItem key={id} value={username}>
-                        {username}
-                      </MenuItem>
-                      <Button disabled={readyState}>
-                        {readyState ? "READY!" : "waiting..."}
-                      </Button>
-                    </>
-                  );
-                }
-              )} */}
+          <WaitingTable playerStatus={playerStatus!} />
           {isHost && (
             <Button
               fullWidth

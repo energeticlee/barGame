@@ -58,11 +58,10 @@ const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
       };
 
     case Actions.setPlayerStatus:
+      console.log("payload", payload);
       return {
         ...state,
-        playerStatus: state.playerStatus
-          ? [...state.playerStatus, ...(payload as IUserInfo[])]
-          : (payload as IUserInfo[]),
+        playerStatus: payload as IUserInfo[],
       };
 
     case Actions.setAvailableGames:
@@ -113,7 +112,7 @@ export const useStore = (intial: IReducerState) => {
 
   const useClearMessage = (timer: number) => {
     setTimeout(
-      () => dispatch({ type: Actions.setMessage, payload: timer }),
+      () => dispatch({ type: Actions.setMessage, payload: "" }),
       timer
     );
   };

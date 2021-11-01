@@ -7,6 +7,7 @@ const path = require(`path`);
 // const { v4: uuidV4 } = require(`uuid`);
 const InBetween = require("./GameLogic/inBetween").default;
 const initialiseGame = require("./GameLogic/initialiseGame").default;
+const { getRoomName } = require("./GameLogic/helper");
 
 const PORT = 5050;
 
@@ -30,29 +31,36 @@ app.get("/*", (req, res) => {
 io.on(`connection`, (socket) => {
   //* Game Data { roomName, pw?, gameRules? { hostName, playerInfo, score } }
   const GAME_DATA = {};
-  console.log("GAME_DATA: ", GAME_DATA);
 
   //! No io.to() => Don't need socket.id
   // socket.emit(`personalId`, socket.id);
 
   //* HOST CREATE ROOM (DONE)
-  socket.on("create-room", ({ roomName, username, password }, cb) => {
-    console.log("HITIN");
-    if (io.sockets.adapter.rooms[roomName]) {
-      console.log("HITINO");
+  socket.on("create-room", (roomName, { username, password }, cb) => {
+    //* Check if GAME_DATA key.includes roomname
+
+    if (getRoomName(GAME_DATA, roomName)) {
       //* Room Exist
       cb({ status: false, msg: "Room Taken" });
     } else {
       //* Room Does Not Exist (socket.join(roomName) ???)
-      console.log("HITINOY");
       socket.join(roomName);
-      GAME_DATA[roomName] = {
+      const roomKey = `${
+        [...io.sockets.adapter.rooms.get(roomName)][0]
+      }$${roomName}`;
+      GAME_DATA[roomKey] = {
         host: username,
         password,
         playerStatus: [{ username, readyState: true }],
       };
-      cb({ status: true, data: GAME_DATA[roomName].playerStatus });
+      cb({ status: true, data: GAME_DATA[roomKey].playerStatus });
     }
+  });
+
+  //* GET ALL PLAYERS (DONE)
+  socket.on("get-players", (roomName, cb) => {
+    if (!GAME_DATA[getRoomName(GAME_DATA, roomName)]) cb("Invalid Room Name");
+    else cb(GAME_DATA[getRoomName(GAME_DATA, roomName)]?.playerStatus);
   });
 
   //* PLAYER JOIN ROOM (NOT DONE)

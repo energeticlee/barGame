@@ -32,16 +32,16 @@ export const useFetchGames = () => {
 };
 
 export const useWaitRoomSocket = () => {
-  const { state, useDisPlayerStatus } = UseStateContext();
+  const { state } = UseStateContext();
   const { socket } = state;
 
   useEffect(() => {
     socket.on("new-join", (data: IUserInfo[]) => {
-      useDisPlayerStatus(data);
+      // useDisPlayerStatus(data);
     });
 
     socket.on("player-status", (data: IUserInfo[]) => {
-      useDisPlayerStatus(data);
+      // useDisPlayerStatus(data);
     });
   }, []); //* Dependencies [] or null?
 };
@@ -68,4 +68,25 @@ export const useHandleReady = async (roomName: string) => {
       }
     );
   }
+};
+
+export const useGetPlayers = (roomName: string) => {
+  const { state, useDisPlayerStatus } = UseStateContext();
+  const { socket } = state;
+  useEffect(() => {
+    socket.emit("get-players", roomName, (cb: IUserInfo[]) =>
+      useDisPlayerStatus(cb)
+    );
+  }, []);
+};
+
+export const allPlayerReady = (): boolean => {
+  const { state } = UseStateContext();
+  const { playerStatus } = state;
+
+  return (
+    Object.values(playerStatus!).filter(
+      (playerState) => playerState.readyState === false
+    ).length === 0
+  );
 };

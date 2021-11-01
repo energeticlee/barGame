@@ -15,7 +15,7 @@ const HostSetup = () => {
     state,
     useDisMessage,
     useClearMessage,
-    useDisPlayerStatus,
+    // useDisPlayerStatus,
     useDisUserData,
     useDisRoomInfo,
   } = UseStateContext();
@@ -27,15 +27,15 @@ const HostSetup = () => {
     if (roomInfo) {
       socket.emit(
         "create-room",
+        roomInfo.roomName,
         userData,
-        (res: { status: boolean; msg: string; data: IUserInfo[] }) => {
-          if (res.status) {
+        (cb: { status: boolean; msg: string; data: IUserInfo[] }) => {
+          if (cb.status) {
             //* Room Successfully Created
-            useDisPlayerStatus(res.data);
             history.push(`/room/${roomInfo.roomName}`);
           } else {
             //* Some other error
-            useDisMessage(res.msg);
+            useDisMessage(cb.msg);
             useClearMessage(2000);
           }
         }

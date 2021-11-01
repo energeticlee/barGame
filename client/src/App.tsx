@@ -7,14 +7,15 @@ import { ContextProvider } from "./store";
 import WaitingRoom from "./Pages/WaitingRoom";
 
 function App() {
+  //* Menu & Game Page
   return (
     <ContextProvider>
       <div className="App">
         <Switch>
-          <Route exact path="/" component={GameLobby} />
           <Route path="/host-setup" component={HostSetup} />
           <Route path="/player-setup" component={PlayerSetup} />
           <Route path="/room/:roomName" component={WaitingRoom} />
+          <Route path="/" component={GameLobby} />
         </Switch>
       </div>
     </ContextProvider>

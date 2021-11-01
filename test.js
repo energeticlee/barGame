@@ -1,6 +1,23 @@
-play1 = [{ one: 1 }, { one: 2 }, { one: 3 }];
-play2 = [{ one: 1 }, { one: 2 }, { one: 3 }];
+const roomId = "12";
+const GAME_DATA = {
+  "JLJ5Lk3EjpA5AYRcAABe/123": {
+    host: "aa",
+    password: undefined,
+    playerStatus: [[Object]],
+  },
+};
 
-const result = play1.findIndex((a) => a.one === 2);
+const roomExist = (gameData, roomName) => {
+  const getRoomId = (str, roomName) => {
+    const room = str.split("/");
+    return room[1] === roomName;
+  };
 
-console.log(result);
+  const result = Object.keys(gameData).find((keys) => {
+    console.log(getRoomId(keys, roomName));
+    return getRoomId(keys, roomName);
+  });
+  return result; //* Return roomkey
+};
+
+console.log(roomExist(GAME_DATA, roomId));
