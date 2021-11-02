@@ -27,8 +27,7 @@ const HostSetup = () => {
     if (roomInfo) {
       socket.emit(
         "create-room",
-        roomInfo.roomName,
-        userData,
+        roomInfo,
         (cb: { status: boolean; msg: string; data: IUserInfo[] }) => {
           if (cb.status) {
             //* Room Successfully Created
@@ -102,7 +101,7 @@ const HostSetup = () => {
             sx={{ mt: 3, mb: 2 }}
             onClick={handleCreate}
           >
-            CREATE!
+            CREATE
           </Button>
         </Box>
       </Container>

@@ -7,7 +7,7 @@ const path = require(`path`);
 // const { v4: uuidV4 } = require(`uuid`);
 const InBetween = require("./GameLogic/inBetween").default;
 const initialiseGame = require("./GameLogic/initialiseGame").default;
-const { getRoomName } = require("./GameLogic/helper");
+const { getRoomName, getRoomId } = require("./GameLogic/helper");
 
 const PORT = 5050;
 
@@ -28,16 +28,17 @@ app.get("/*", (req, res) => {
 });
 
 //* Setup collection => on === event listener
+const GAME_DATA = {};
 io.on(`connection`, (socket) => {
   //* Game Data { roomName, pw?, gameRules? { hostName, playerInfo, score } }
-  const GAME_DATA = {};
 
   //! No io.to() => Don't need socket.id
   // socket.emit(`personalId`, socket.id);
 
   //* HOST CREATE ROOM (DONE)
-  socket.on("create-room", (roomName, { username, password }, cb) => {
+  socket.on("create-room", ({ roomName, host, password }, cb) => {
     //* Check if GAME_DATA key.includes roomname
+    console.log("GAME_DATA", GAME_DATA);
 
     if (getRoomName(GAME_DATA, roomName)) {
       //* Room Exist
@@ -49,9 +50,9 @@ io.on(`connection`, (socket) => {
         [...io.sockets.adapter.rooms.get(roomName)][0]
       }$${roomName}`;
       GAME_DATA[roomKey] = {
-        host: username,
+        host,
         password,
-        playerStatus: [{ username, readyState: true }],
+        playerStatus: [{ username: host, readyState: true }],
       };
       cb({ status: true, data: GAME_DATA[roomKey].playerStatus });
     }
@@ -59,22 +60,60 @@ io.on(`connection`, (socket) => {
 
   //* GET ALL PLAYERS (DONE)
   socket.on("get-players", (roomName, cb) => {
-    if (!GAME_DATA[getRoomName(GAME_DATA, roomName)]) cb("Invalid Room Name");
-    else cb(GAME_DATA[getRoomName(GAME_DATA, roomName)]?.playerStatus);
+    console.log(GAME_DATA[getRoomName(GAME_DATA, roomName)]?.playerStatus);
+    if (!GAME_DATA[getRoomName(GAME_DATA, roomName)])
+      cb({ status: false, msg: "Room Does Not Exist" });
+    else
+      cb({
+        status: true,
+        data: GAME_DATA[getRoomName(GAME_DATA, roomName)]?.playerStatus,
+      });
+  });
+
+  //* GET ALL PLAYERS (DONE)
+  socket.on("is-host", ({ roomName, username }, cb) => {
+    if (!GAME_DATA[getRoomName(GAME_DATA, roomName)])
+      //* ROOM DON'T NOT EXIST
+      cb({ status: false, msg: "Room Does Not Exist" });
+    //* ROOM EXIST
+    else {
+      const roomKey = `${
+        [...io.sockets.adapter.rooms.get(roomName)][0]
+      }$${roomName}`;
+      if (GAME_DATA[roomKey].host === username)
+        //* IS HOST
+        cb({
+          status: true,
+          isHost: true,
+        });
+      //* NOT HOST
+      else cb({ status: false, isHost: false });
+    }
   });
 
   //* PLAYER JOIN ROOM (NOT DONE)
-  socket.on(`join-room`, (roomName, playerInfo, cb) => {
-    if (io.sockets.adapter.rooms[roomName]) {
-      //* Room exist
+  socket.on(`join-room`, ({ roomName, password }, { username }, cb) => {
+    if (getRoomName(GAME_DATA, roomName)) {
+      //* ROOM EXIST
       socket.join(roomName);
-      GAME_DATA[roomName] = {
-        ...GAME_DATA[roomName],
-        players: [...GAME_DATA[roomName].players, playerInfo],
-      };
-      socket.emit("new-join", GAME_DATA[roomName].player);
-      // cb(true);
-    } else cb(false); //* INVALID ROOM
+      const roomKey = `${
+        [...io.sockets.adapter.rooms.get(roomName)][0]
+      }$${roomName}`;
+      //* CHECK IF PASSWORD REQUIRED
+      if (
+        !GAME_DATA[roomKey].password ||
+        GAME_DATA[roomKey].password === password
+      ) {
+        //* PASSWORD MATCH || NO PASSWORD REQUIRED
+        GAME_DATA[roomKey].playerStatus.push({ username, readyState: false });
+        cb({ status: true });
+        socket
+          .to(getRoomId(GAME_DATA, roomName))
+          .emit("new-join", GAME_DATA[roomKey].playerStatus);
+      }
+      //* INCORRECT PASSWORD
+      else cb({ status: false, msg: "Invalid Password" });
+    } else cb({ status: false, msg: "Invalid Room" });
   });
 
   //* PLAYER SET READY (DONE)

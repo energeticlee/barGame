@@ -58,7 +58,6 @@ const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
       };
 
     case Actions.setPlayerStatus:
-      console.log("payload", payload);
       return {
         ...state,
         playerStatus: payload as IUserInfo[],
@@ -117,7 +116,11 @@ export const useStore = (intial: IReducerState) => {
     );
   };
 
-  const isHostState = () => useState(false);
+  const [isHost, setIsHost] = useState<boolean | null>();
+
+  const updateHost = (hostStatus: boolean) => {
+    setIsHost(hostStatus);
+  };
 
   return {
     state,
@@ -128,7 +131,8 @@ export const useStore = (intial: IReducerState) => {
     useDisSelectedGame,
     useDisMessage,
     useClearMessage,
-    isHostState,
+    updateHost,
+    isHost,
   };
 };
 

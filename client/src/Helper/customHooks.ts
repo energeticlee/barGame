@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useHistory } from "react-router-dom";
-import { IUserInfo } from "./Interface";
+import { IUserInfo, ICallBack } from "./Interface";
 import { UseStateContext } from "../store";
 
 //* DIRECTORY
@@ -32,18 +32,14 @@ export const useFetchGames = () => {
 };
 
 export const useWaitRoomSocket = () => {
-  const { state } = UseStateContext();
+  const { state, useDisPlayerStatus } = UseStateContext();
   const { socket } = state;
 
   useEffect(() => {
-    socket.on("new-join", (data: IUserInfo[]) => {
-      // useDisPlayerStatus(data);
-    });
+    socket.on("new-join", (data: IUserInfo[]) => useDisPlayerStatus(data));
 
-    socket.on("player-status", (data: IUserInfo[]) => {
-      // useDisPlayerStatus(data);
-    });
-  }, []); //* Dependencies [] or null?
+    socket.on("player-status", (data: IUserInfo[]) => useDisPlayerStatus(data));
+  }, []);
 };
 
 export const useHandleReady = async (roomName: string) => {
@@ -53,30 +49,48 @@ export const useHandleReady = async (roomName: string) => {
   //* Userdata validation
   if (roomInfo) {
     //* Send socket request
-    socket.emit(
-      "set-ready",
-      userData,
-      roomName,
-      (res: { status: boolean; msg: string }) => {
-        if (res.status) {
-          //* Set Ready Successful
-        } else {
-          //* Error
-          useDisMessage(res.msg);
-          useClearMessage(2000);
-        }
+    socket.emit("set-ready", userData, roomName, (res: ICallBack) => {
+      if (res.status) {
+        //* Set Ready Successful
+      } else {
+        //* Error
+        useDisMessage(res.msg);
+        useClearMessage(2000);
       }
-    );
+    });
   }
 };
 
 export const useGetPlayers = (roomName: string) => {
-  const { state, useDisPlayerStatus } = UseStateContext();
+  const { state, useDisPlayerStatus, useDisMessage, useClearMessage } =
+    UseStateContext();
   const { socket } = state;
   useEffect(() => {
-    socket.emit("get-players", roomName, (cb: IUserInfo[]) =>
-      useDisPlayerStatus(cb)
-    );
+    socket.emit("get-players", roomName, (res: ICallBack) => {
+      if (res.status) useDisPlayerStatus(res.data);
+      else {
+        //* Error
+        useDisMessage(res.msg!);
+        useClearMessage(2000);
+      }
+    });
+  }, []);
+};
+
+export const useIsHost = (roomName: string, username: string) => {
+  const { state, useDisMessage, useClearMessage, updateHost } =
+    UseStateContext();
+  const { socket } = state;
+
+  useEffect(() => {
+    socket.emit("is-host", { roomName, username }, (res: ICallBack) => {
+      if (res.status) updateHost(res.isHost);
+      else {
+        //* Error
+        useDisMessage(res.msg!);
+        useClearMessage(2000);
+      }
+    });
   }, []);
 };
 

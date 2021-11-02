@@ -1,23 +1,12 @@
-const roomId = "12";
+const roomId = "JLJ5Lk3EjpA5AYRcAABe/123";
 const GAME_DATA = {
   "JLJ5Lk3EjpA5AYRcAABe/123": {
     host: "aa",
     password: undefined,
-    playerStatus: [[Object]],
+    playerStatus: [{ username: "p1", readyState: true }],
   },
 };
 
-const roomExist = (gameData, roomName) => {
-  const getRoomId = (str, roomName) => {
-    const room = str.split("/");
-    return room[1] === roomName;
-  };
+GAME_DATA[roomId].playerStatus.push({ username: "p2", readyState: true });
 
-  const result = Object.keys(gameData).find((keys) => {
-    console.log(getRoomId(keys, roomName));
-    return getRoomId(keys, roomName);
-  });
-  return result; //* Return roomkey
-};
-
-console.log(roomExist(GAME_DATA, roomId));
+console.log(GAME_DATA[roomId].playerStatus);

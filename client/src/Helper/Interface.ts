@@ -35,3 +35,10 @@ export interface IAvailableGame {
   gameSetup: string;
   howToPlay: string;
 }
+
+export interface ICallBack {
+  status: boolean;
+  msg: string;
+  data: IUserInfo[];
+  isHost: boolean;
+}

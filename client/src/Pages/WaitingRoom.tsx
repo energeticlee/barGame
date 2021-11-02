@@ -5,6 +5,7 @@ import {
   useWaitRoomSocket,
   allPlayerReady,
   useGetPlayers,
+  useIsHost,
 } from "../Helper/customHooks";
 import { UseStateContext } from "../store";
 import { IAvailableGame } from "../Helper/Interface";
@@ -21,15 +22,15 @@ import {
 import WaitingTable from "../Components/WaitingTable";
 
 const WaitingRoom = () => {
-  const { state, useDisSelectedGame, isHostState } = UseStateContext();
-  const { playerStatus, selectedGame, message, availableGames } = state;
+  const { state, useDisSelectedGame, isHost } = UseStateContext();
+  const { playerStatus, selectedGame, message, availableGames, userData } =
+    state;
   const { roomName } = useParams<{ roomName?: string }>();
-
-  const [isHost, setIsHost] = isHostState();
 
   useFetchGames();
   useGetPlayers(roomName!);
   useWaitRoomSocket();
+  if (userData) useIsHost(roomName!, userData.username!);
 
   //* Listen for READY (Update backend game state)
   //* if all player ready, startGame enabled
@@ -52,29 +53,37 @@ const WaitingRoom = () => {
           }}
         >
           <Typography component="h1" variant="h5">
-            Create A Room
+            {roomName}
           </Typography>
-          <InputLabel id="selectGame">Select Game</InputLabel>
-          <Select
-            labelId="selectGame"
-            required
-            fullWidth
-            id="selectGame"
-            value={selectedGame ? selectedGame : ""}
-            onChange={(e) => useDisSelectedGame(e.target.value)}
-            sx={{ mb: 2, textAlign: "left" }}
-          >
-            {availableGames &&
-              availableGames.map(({ gameName }: IAvailableGame, id) => {
-                return (
-                  <MenuItem key={id} value={gameName}>
-                    {gameName}
-                  </MenuItem>
-                );
-              })}
-          </Select>
+          {isHost ? (
+            <>
+              <InputLabel id="selectGame">Select Game</InputLabel>
+              <Select
+                labelId="selectGame"
+                required
+                fullWidth
+                id="selectGame"
+                value={selectedGame ? selectedGame : ""}
+                onChange={(e) => useDisSelectedGame(e.target.value)}
+                sx={{ mb: 2, textAlign: "left" }}
+              >
+                {availableGames &&
+                  availableGames.map(({ gameName }: IAvailableGame, id) => {
+                    return (
+                      <MenuItem key={id} value={gameName}>
+                        {gameName}
+                      </MenuItem>
+                    );
+                  })}
+              </Select>
+            </>
+          ) : (
+            <Typography component="h1" variant="h5">
+              {selectedGame}TEST
+            </Typography>
+          )}
           <WaitingTable playerStatus={playerStatus!} />
-          {isHost && (
+          {/* {isHost && (
             <Button
               fullWidth
               variant="contained"
@@ -84,7 +93,7 @@ const WaitingRoom = () => {
             >
               CREATE!
             </Button>
-          )}
+          )} */}
         </Box>
       </Container>
     </>
