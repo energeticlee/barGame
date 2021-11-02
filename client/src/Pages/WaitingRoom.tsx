@@ -18,13 +18,20 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  SelectChangeEvent,
 } from "@mui/material";
 import WaitingTable from "../Components/WaitingTable";
 
 const WaitingRoom = () => {
-  const { state, useDisSelectedGame, isHost } = UseStateContext();
-  const { playerStatus, selectedGame, message, availableGames, userData } =
-    state;
+  const { state, isHost } = UseStateContext();
+  const {
+    socket,
+    playerStatus,
+    selectedGame,
+    message,
+    availableGames,
+    userData,
+  } = state;
   const { roomName } = useParams<{ roomName?: string }>();
 
   useFetchGames();
@@ -36,6 +43,9 @@ const WaitingRoom = () => {
   //* if all player ready, startGame enabled
   //* initialise game
   //* route to game board
+  const handleChangeGame = (e: SelectChangeEvent<string>) => {
+    socket.emit("change-game", { data: e.target.value, roomName });
+  };
 
   return (
     <>
@@ -64,7 +74,7 @@ const WaitingRoom = () => {
                 fullWidth
                 id="selectGame"
                 value={selectedGame ? selectedGame : ""}
-                onChange={(e) => useDisSelectedGame(e.target.value)}
+                onChange={(e) => handleChangeGame(e)}
                 sx={{ mb: 2, textAlign: "left" }}
               >
                 {availableGames &&
@@ -79,7 +89,7 @@ const WaitingRoom = () => {
             </>
           ) : (
             <Typography component="h1" variant="h5">
-              {selectedGame}TEST
+              {selectedGame}
             </Typography>
           )}
           <WaitingTable playerStatus={playerStatus!} />

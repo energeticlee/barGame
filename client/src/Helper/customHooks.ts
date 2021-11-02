@@ -32,13 +32,21 @@ export const useFetchGames = () => {
 };
 
 export const useWaitRoomSocket = () => {
-  const { state, useDisPlayerStatus } = UseStateContext();
+  const { state, useDisPlayerStatus, useDisSelectedGame } = UseStateContext();
   const { socket } = state;
 
   useEffect(() => {
-    socket.on("new-join", (data: IUserInfo[]) => useDisPlayerStatus(data));
+    socket.on("new-join", (data: IUserInfo[]) => {
+      console.log("hit new-join");
+      useDisPlayerStatus(data);
+    });
 
     socket.on("player-status", (data: IUserInfo[]) => useDisPlayerStatus(data));
+
+    socket.on("update-game", (data: string) => {
+      console.log("data", data);
+      useDisSelectedGame(data);
+    });
   }, []);
 };
 
@@ -50,10 +58,7 @@ export const useHandleReady = async (roomName: string) => {
   if (roomInfo) {
     //* Send socket request
     socket.emit("set-ready", userData, roomName, (res: ICallBack) => {
-      if (res.status) {
-        //* Set Ready Successful
-      } else {
-        //* Error
+      if (!res.status) {
         useDisMessage(res.msg);
         useClearMessage(2000);
       }
@@ -87,6 +92,7 @@ export const useIsHost = (roomName: string, username: string) => {
       if (res.status) updateHost(res.isHost);
       else {
         //* Error
+        updateHost(res.isHost);
         useDisMessage(res.msg!);
         useClearMessage(2000);
       }

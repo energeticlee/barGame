@@ -1,6 +1,6 @@
 import { useHistory } from "react-router-dom";
 import { UseStateContext } from "../store";
-import { IUserInfo } from "../Helper/Interface";
+import { ICallBack } from "../Helper/Interface";
 import {
   Container,
   Box,
@@ -15,30 +15,25 @@ const HostSetup = () => {
     state,
     useDisMessage,
     useClearMessage,
-    // useDisPlayerStatus,
     useDisUserData,
     useDisRoomInfo,
   } = UseStateContext();
-  const { socket, userData, roomInfo, message } = state;
+  const { socket, roomInfo, message } = state;
   const history = useHistory();
 
   //  Send socket request
   const handleCreate = () => {
     if (roomInfo) {
-      socket.emit(
-        "create-room",
-        roomInfo,
-        (cb: { status: boolean; msg: string; data: IUserInfo[] }) => {
-          if (cb.status) {
-            //* Room Successfully Created
-            history.push(`/room/${roomInfo.roomName}`);
-          } else {
-            //* Some other error
-            useDisMessage(cb.msg);
-            useClearMessage(2000);
-          }
+      socket.emit("create-room", roomInfo, (res: ICallBack) => {
+        if (res.status) {
+          //* Room Successfully Created
+          history.push(`/room/${roomInfo.roomName}`);
+        } else {
+          //* Some other error
+          useDisMessage(res.msg);
+          useClearMessage(2000);
         }
-      );
+      });
     }
   };
 
