@@ -7,7 +7,12 @@ const path = require(`path`);
 // const { v4: uuidV4 } = require(`uuid`);
 const InBetween = require("./GameLogic/inBetween").default;
 const initialiseGame = require("./GameLogic/initialiseGame").default;
-const { getRoomName, getRoomId } = require("./GameLogic/helper");
+const {
+  getRoomName,
+  getRoomId,
+  getRoomKey,
+  allPlayerReady,
+} = require("./GameLogic/helper");
 
 const PORT = 5050;
 
@@ -46,9 +51,7 @@ io.on(`connection`, (socket) => {
     } else {
       //* Room Does Not Exist
       socket.join(roomName);
-      const roomKey = `${
-        [...io.sockets.adapter.rooms.get(roomName)][0]
-      }$%$${roomName}`;
+      const roomKey = getRoomKey(io, roomName);
       GAME_DATA[roomKey] = {
         host,
         password,
@@ -76,9 +79,7 @@ io.on(`connection`, (socket) => {
       cb({ status: false, msg: "Room Does Not Exist" });
     //* ROOM EXIST
     else {
-      const roomKey = `${
-        [...io.sockets.adapter.rooms.get(roomName)][0]
-      }$%$${roomName}`;
+      const roomKey = getRoomKey(io, roomName);
       if (GAME_DATA[roomKey].host === username)
         //* IS HOST
         cb({
@@ -94,9 +95,7 @@ io.on(`connection`, (socket) => {
   socket.on(`join-room`, ({ roomName, password }, { username }, cb) => {
     if (getRoomName(GAME_DATA, roomName)) {
       //* ROOM EXIST
-      const roomKey = `${
-        [...io.sockets.adapter.rooms.get(roomName)][0]
-      }$%$${roomName}`;
+      const roomKey = getRoomKey(io, roomName);
       //* CHECK IF PASSWORD REQUIRED
       if (
         !GAME_DATA[roomKey].password ||
@@ -113,11 +112,9 @@ io.on(`connection`, (socket) => {
     } else cb({ status: false, msg: "Invalid Room" });
   });
 
-  //* UPDATE CHANGE GAME
+  //* UPDATE CHANGE GAME (DONE)
   socket.on("change-game", ({ data, roomName }) => {
-    const roomKey = `${
-      [...io.sockets.adapter.rooms.get(roomName)][0]
-    }$%$${roomName}`;
+    const roomKey = getRoomKey(io, roomName);
     GAME_DATA[roomKey].selectedGame = data;
     console.log(
       "GAME_DATA[roomKey]",
@@ -128,8 +125,24 @@ io.on(`connection`, (socket) => {
   });
 
   //* PLAYER SET READY (DONE)
+  socket.on("update-ready", (username, roomName, ready, cb) => {
+    const roomKey = getRoomKey(io, roomName);
+    if (GAME_DATA[roomKey]) {
+      const playerStatus = GAME_DATA[roomKey].playerStatus;
+      const targetIndex = playerStatus.findIndex(
+        (p) => p.username === username
+      );
+      playerStatus[targetIndex].readyState = ready;
+      io.in(roomName).emit("update-player-status", playerStatus);
+    } else cb({ status: false, msg: "Invalid Room" });
+  });
+
+  //! PLAYER SET READY (DONE)
   socket.on("set-ready", ({ username, readyState }, roomName, cb) => {
-    if (GAME_DATA[roomName]) {
+    if (
+      GAME_DATA[roomName] &&
+      allPlayerReady(GAME_DATA[roomName].playerStatus)
+    ) {
       const playerStatus = GAME_DATA[roomName].playerStatus;
       //* UPDATE USER
       const targetIndex = playerStatus.findIndex(
@@ -141,7 +154,7 @@ io.on(`connection`, (socket) => {
       });
 
       socket.emit("player-status", playerStatus);
-    } else cb({ status: false, msg: "Invalid Room" });
+    } else cb({ status: false, msg: "Players Not Ready" });
   });
 
   //* HOST CHANGE GAME (NOT DONE)

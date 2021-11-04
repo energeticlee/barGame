@@ -14,7 +14,7 @@ export interface IUserInfo {
 export interface IRoomInfo {
   host?: string;
   roomName?: string;
-  password?: string;
+  password?: string | undefined;
   selectedGame?: string;
 }
 
@@ -41,4 +41,5 @@ export interface ICallBack {
   msg: string;
   data: IUserInfo[];
   isHost: boolean;
+  userInfo: IUserInfo;
 }

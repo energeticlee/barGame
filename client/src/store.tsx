@@ -83,28 +83,23 @@ const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
 export const useStore = (intial: IReducerState) => {
   const [state, dispatch] = useReducer(reducerFunc, intial);
 
-  const useDisRoomInfo = (payload: IRoomInfo) => {
+  const useDisRoomInfo = (payload: IRoomInfo) =>
     dispatch({ type: Actions.setRoomInfo, payload });
-  };
 
-  const useDisUserData = (payload: IUserInfo) => {
+  const useDisUserData = (payload: IUserInfo) =>
     dispatch({ type: Actions.setUserData, payload });
-  };
 
-  const useDisPlayerStatus = (payload: IUserInfo[]) => {
+  const useDisPlayerStatus = (payload: IUserInfo[]) =>
     dispatch({ type: Actions.setPlayerStatus, payload });
-  };
 
-  const useDisAvailableGames = (payload: IAvailableGame[]) => {
+  const useDisAvailableGames = (payload: IAvailableGame[]) =>
     dispatch({
       type: Actions.setAvailableGames,
       payload,
     });
-  };
 
-  const useDisSelectedGame = (payload: string) => {
+  const useDisSelectedGame = (payload: string) =>
     dispatch({ type: Actions.setSelectedGame, payload });
-  };
 
   const useDisMessage = (payload: string) =>
     dispatch({ type: Actions.setMessage, payload });
@@ -118,9 +113,7 @@ export const useStore = (intial: IReducerState) => {
 
   const [isHost, setIsHost] = useState<boolean | null>();
 
-  const updateHost = (hostStatus: boolean) => {
-    setIsHost(hostStatus);
-  };
+  const updateHost = (hostStatus: boolean) => setIsHost(hostStatus);
 
   return {
     state,

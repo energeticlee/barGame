@@ -7,8 +7,10 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Button,
 } from "@mui/material";
-import { IUserInfo } from "../Helper/Interface";
+import { IUserInfo, ICallBack } from "../Helper/Interface";
+import { UseStateContext } from "../store";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -30,7 +32,30 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
+//* Matched username able to toggle button, else show status
+//* Backend validation if user matched (Require accounts/identification)
+//* Display user at the top of table
+//* filter userInfo from playerState
+
 const WaitingTable = ({ playerStatus }: { playerStatus: IUserInfo[] }) => {
+  const { state, useDisUserData, useDisMessage, useClearMessage } =
+    UseStateContext();
+  const { socket, userData, roomInfo } = state;
+  const { roomName } = roomInfo!;
+  const { username } = userData!;
+
+  // const filteredPlayer = (arr: IUserInfo[], username: string) =>
+  //   arr.filter((friend) => friend.username !== username);
+
+  const handleClick = (ready: boolean) => {
+    socket.emit("update-ready", username, roomName, ready, (res: ICallBack) => {
+      if (!res.status) {
+        useDisMessage(res.msg);
+        useClearMessage(2000);
+      }
+    });
+  };
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ width: "contentfit" }} aria-label="customized table">
@@ -48,7 +73,23 @@ const WaitingTable = ({ playerStatus }: { playerStatus: IUserInfo[] }) => {
                   {username}
                 </StyledTableCell>
                 <StyledTableCell align="right">
-                  {readyState ? "READY!" : "Waiting..."}
+                  {readyState ? (
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={() => handleClick(false)}
+                    >
+                      READY!
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      color="success"
+                      onClick={() => handleClick(true)}
+                    >
+                      Waiting...
+                    </Button>
+                  )}
                 </StyledTableCell>
               </StyledTableRow>
             ))}

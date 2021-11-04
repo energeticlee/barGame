@@ -1,12 +1,5 @@
 import { useParams } from "react-router-dom";
-import {
-  useFetchGames,
-  useHandleReady,
-  useWaitRoomSocket,
-  allPlayerReady,
-  useGetPlayers,
-  useIsHost,
-} from "../Helper/customHooks";
+import { useWaitRoomSocket, useHandleReady } from "../Helper/customHooks";
 import { UseStateContext } from "../store";
 import { IAvailableGame } from "../Helper/Interface";
 import {
@@ -34,10 +27,12 @@ const WaitingRoom = () => {
   } = state;
   const { roomName } = useParams<{ roomName?: string }>();
 
-  useFetchGames();
-  useGetPlayers(roomName!);
-  useWaitRoomSocket();
-  if (userData) useIsHost(roomName!, userData.username!);
+  useWaitRoomSocket(roomName!, userData?.username!);
+
+  const allPlayerReady = () =>
+    Object.values(playerStatus!).filter(
+      (playerState) => playerState.readyState === false
+    ).length === 0;
 
   //* Listen for READY (Update backend game state)
   //* if all player ready, startGame enabled
@@ -51,20 +46,29 @@ const WaitingRoom = () => {
     <>
       <CssBaseline />
       <Container>
-        {message && (
-          <Typography component="h1" variant="h5">
-            {message}
+        <Box
+          sx={{
+            mt: 2,
+            borderBottom: "1px solid",
+          }}
+        >
+          <Typography sx={{ mb: 2 }} component="h1" variant="h5">
+            {roomName}
           </Typography>
-        )}
+        </Box>
+        <Typography
+          sx={{ height: 10, mt: 2 }}
+          component="h1"
+          variant="subtitle1"
+        >
+          {message && message}
+        </Typography>
         <Box
           component="form"
           sx={{
-            mt: 8,
+            mt: 4,
           }}
         >
-          <Typography component="h1" variant="h5">
-            {roomName}
-          </Typography>
           {isHost ? (
             <>
               <InputLabel id="selectGame">Select Game</InputLabel>
@@ -93,7 +97,7 @@ const WaitingRoom = () => {
             </Typography>
           )}
           <WaitingTable playerStatus={playerStatus!} />
-          {/* {isHost && (
+          {isHost && (
             <Button
               fullWidth
               variant="contained"
@@ -103,7 +107,7 @@ const WaitingRoom = () => {
             >
               CREATE!
             </Button>
-          )} */}
+          )}
         </Box>
       </Container>
     </>

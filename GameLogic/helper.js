@@ -8,4 +8,12 @@ const getRoomId = (gData, rName) => {
   return target.split("$%$")[0];
 };
 
-module.exports = { getRoomName, getRoomId };
+const getRoomKey = (io, rName) =>
+  `${[...io.sockets.adapter.rooms.get(rName)][0]}$%$${rName}`;
+
+const allPlayerReady = (playerStatus) =>
+  Object.values(playerStatus).filter(
+    (playerState) => playerState.readyState === false
+  ).length === 0;
+
+module.exports = { getRoomName, getRoomId, getRoomKey, allPlayerReady };
