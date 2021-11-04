@@ -37,7 +37,6 @@ export const useWaitRoomSocket = () => {
 
   useEffect(() => {
     socket.on("new-join", (data: IUserInfo[]) => {
-      console.log("hit new-join");
       useDisPlayerStatus(data);
     });
 

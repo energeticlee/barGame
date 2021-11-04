@@ -106,10 +106,7 @@ io.on(`connection`, (socket) => {
         socket.join(roomName);
         GAME_DATA[roomKey].playerStatus.push({ username, readyState: false });
         cb({ status: true });
-        console.log("getRoomId", getRoomId(GAME_DATA, roomName));
-        socket
-          .to(getRoomId(GAME_DATA, roomName))
-          .emit("new-join", GAME_DATA[roomKey].playerStatus);
+        socket.to(roomName).emit("new-join", GAME_DATA[roomKey].playerStatus);
       }
       //* INCORRECT PASSWORD
       else cb({ status: false, msg: "Invalid Password" });
@@ -127,9 +124,7 @@ io.on(`connection`, (socket) => {
       GAME_DATA[roomKey],
       getRoomId(GAME_DATA, roomName)
     );
-    socket
-      .to(getRoomId(GAME_DATA, roomName))
-      .emit("update-game", GAME_DATA[roomKey].selectedGame);
+    socket.to(roomName).emit("update-game", GAME_DATA[roomKey].selectedGame);
   });
 
   //* PLAYER SET READY (DONE)
