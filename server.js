@@ -121,7 +121,7 @@ io.on(`connection`, (socket) => {
       GAME_DATA[roomKey],
       getRoomId(GAME_DATA, roomName)
     );
-    socket.to(roomName).emit("update-game", GAME_DATA[roomKey].selectedGame);
+    io.in(roomName).emit("update-game", GAME_DATA[roomKey].selectedGame);
   });
 
   //* PLAYER SET READY (DONE)

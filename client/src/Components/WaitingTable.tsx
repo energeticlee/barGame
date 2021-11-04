@@ -38,8 +38,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 //* filter userInfo from playerState
 
 const WaitingTable = ({ playerStatus }: { playerStatus: IUserInfo[] }) => {
-  const { state, useDisUserData, useDisMessage, useClearMessage } =
-    UseStateContext();
+  const { state, useDisMessage } = UseStateContext();
   const { socket, userData, roomInfo } = state;
   const { roomName } = roomInfo!;
   const { username } = userData!;
@@ -49,10 +48,7 @@ const WaitingTable = ({ playerStatus }: { playerStatus: IUserInfo[] }) => {
 
   const handleClick = (ready: boolean) => {
     socket.emit("update-ready", username, roomName, ready, (res: ICallBack) => {
-      if (!res.status) {
-        useDisMessage(res.msg);
-        useClearMessage(2000);
-      }
+      if (!res.status) useDisMessage(res.msg);
     });
   };
 

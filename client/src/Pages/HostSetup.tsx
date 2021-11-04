@@ -11,13 +11,8 @@ import {
 } from "@mui/material";
 
 const HostSetup = () => {
-  const {
-    state,
-    useDisMessage,
-    useClearMessage,
-    useDisUserData,
-    useDisRoomInfo,
-  } = UseStateContext();
+  const { state, useDisMessage, useDisUserData, useDisRoomInfo } =
+    UseStateContext();
   const { socket, roomInfo, message } = state;
   const history = useHistory();
 
@@ -25,14 +20,10 @@ const HostSetup = () => {
   const handleCreate = () => {
     if (roomInfo) {
       socket.emit("create-room", roomInfo, (res: ICallBack) => {
-        if (res.status) {
+        if (res.status)
           //* Room Successfully Created
           history.push(`/room/${roomInfo.roomName}`);
-        } else {
-          //* Some other error
-          useDisMessage(res.msg);
-          useClearMessage(2000);
-        }
+        else useDisMessage(res.msg);
       });
     }
   };

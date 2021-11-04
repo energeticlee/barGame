@@ -101,14 +101,9 @@ export const useStore = (intial: IReducerState) => {
   const useDisSelectedGame = (payload: string) =>
     dispatch({ type: Actions.setSelectedGame, payload });
 
-  const useDisMessage = (payload: string) =>
+  const useDisMessage = (payload: string) => {
     dispatch({ type: Actions.setMessage, payload });
-
-  const useClearMessage = (timer: number) => {
-    setTimeout(
-      () => dispatch({ type: Actions.setMessage, payload: "" }),
-      timer
-    );
+    setTimeout(() => dispatch({ type: Actions.setMessage, payload: "" }), 2000);
   };
 
   const [isHost, setIsHost] = useState<boolean | null>();
@@ -123,7 +118,6 @@ export const useStore = (intial: IReducerState) => {
     useDisAvailableGames,
     useDisSelectedGame,
     useDisMessage,
-    useClearMessage,
     updateHost,
     isHost,
   };
