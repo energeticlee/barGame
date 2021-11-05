@@ -22,6 +22,7 @@ const Stake: FC<Props> = ({ handleChangeGame }) => {
         sx={{ width: 2 / 5, mr: 1 }}
         id="stake"
         label="Stake ($)"
+        type="number"
         name="stake"
         autoFocus
         onChange={(e) => handleChangeGame(e)}
@@ -30,9 +31,10 @@ const Stake: FC<Props> = ({ handleChangeGame }) => {
         margin="normal"
         required
         sx={{ width: 2 / 5, ml: 1 }}
-        id="buyin"
+        id="minBuyin"
+        type="number"
         label="Min Buyin"
-        name="buyin"
+        name="minBuyin"
         autoFocus
         onChange={(e) => handleChangeGame(e)}
       />

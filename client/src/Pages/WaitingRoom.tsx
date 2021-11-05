@@ -21,7 +21,7 @@ const WaitingRoom = () => {
   const { socket, playerStatus, gameInfo, message, availableGames, userData } =
     state;
   const { roomName } = useParams<{ roomName?: string }>();
-  const { selectedGame } = gameInfo!;
+  const { selectedGame, stake, minBuyin } = gameInfo!;
 
   useWaitRoomSocket(roomName!, userData?.username!);
 
@@ -97,9 +97,23 @@ const WaitingRoom = () => {
               {selectedGame && <Stake handleChangeGame={handleChangeGame} />}
             </>
           ) : (
-            <Typography component="h1" variant="h5">
-              {selectedGame && `${selectedGame} : $0.50 Ante`}
-            </Typography>
+            <Container sx={{ display: "flex", justifyContent: "flex-start" }}>
+              {selectedGame && (
+                <Typography component="h1" variant="h6" sx={{ mr: 2 }}>
+                  {`Game: ${selectedGame}`}
+                </Typography>
+              )}
+              {stake && (
+                <Typography component="h1" variant="h6" sx={{ ml: 2 }}>
+                  {`Ante: $${stake}`}
+                </Typography>
+              )}
+              {minBuyin && (
+                <Typography component="h1" variant="h6" sx={{ ml: 2 }}>
+                  {`Min-Buyin: $${minBuyin}`}
+                </Typography>
+              )}
+            </Container>
           )}
           <WaitingTable playerStatus={playerStatus!} />
           {isHost && (
