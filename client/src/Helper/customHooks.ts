@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useHistory } from "react-router-dom";
-import { IUserInfo, ICallBack } from "./Interface";
+import { IUserInfo, ICallBack, IGameInfo } from "./Interface";
 import { UseStateContext } from "../store";
 
 //* DIRECTORY
@@ -13,10 +13,11 @@ export const useWaitRoomSocket = (roomName: string, username: string) => {
     useDisAvailableGames,
     state,
     useDisPlayerStatus,
-    useDisSelectedGame,
+    useDisGameInfo,
     updateHost,
   } = UseStateContext();
   const { socket } = state;
+  const histroy = useHistory();
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -35,12 +36,16 @@ export const useWaitRoomSocket = (roomName: string, username: string) => {
       useDisPlayerStatus(data)
     );
 
-    socket.on("update-game", (data: string) => useDisSelectedGame(data));
+    socket.on("update-game", (data: IGameInfo) => useDisGameInfo(data));
 
     socket.emit("get-players", roomName, (res: ICallBack) => {
       if (res.status) useDisPlayerStatus(res.data);
       else useDisMessage(res.msg!);
     });
+
+    socket.on("start-game", (roomName) =>
+      histroy.push(`/room/inbetween/${roomName}`)
+    );
 
     socket.emit("is-host", { roomName, username }, (res: ICallBack) => {
       if (res.status) updateHost(res.isHost);
@@ -54,13 +59,20 @@ export const useWaitRoomSocket = (roomName: string, username: string) => {
 
 export const useHandleReady = async (roomName: string) => {
   const { state, useDisMessage } = UseStateContext();
-  const { socket, userData, roomInfo } = state;
+  const { socket, userData, roomInfo, gameInfo } = state;
+  const { selectedGame } = gameInfo!;
 
   //* Userdata validation
   if (roomInfo) {
     //* Send socket request
-    socket.emit("set-ready", userData, roomName, (res: ICallBack) => {
-      if (!res.status) useDisMessage(res.msg);
-    });
+    socket.emit(
+      "initialise-game",
+      userData,
+      roomName,
+      selectedGame,
+      (res: ICallBack) => {
+        if (!res.status) useDisMessage(res.msg);
+      }
+    );
   }
 };

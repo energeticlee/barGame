@@ -11,14 +11,8 @@ import {
 } from "@mui/material";
 
 const PlayerCreation = () => {
-  const {
-    state,
-    useDisMessage,
-    useClearMessage,
-    // useDisPlayerStatus,
-    useDisUserData,
-    useDisRoomInfo,
-  } = UseStateContext();
+  const { state, useDisMessage, useDisUserData, useDisRoomInfo } =
+    UseStateContext();
   const { socket, userData, roomInfo, message } = state;
   const history = useHistory();
 
@@ -26,14 +20,8 @@ const PlayerCreation = () => {
   const handleJoin = () => {
     if (roomInfo) {
       socket.emit("join-room", roomInfo, userData, (res: ICallBack) => {
-        if (res.status) {
-          //* Room Successfully Created
-          history.push(`/room/${roomInfo.roomName}`);
-        } else {
-          //* Some other error
-          useDisMessage(res.msg);
-          useClearMessage(2000);
-        }
+        if (res.status) history.push(`/lobby/${roomInfo.roomName}`);
+        else useDisMessage(res.msg);
       });
     }
   };

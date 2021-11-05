@@ -35,7 +35,8 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 //* Matched username able to toggle button, else show status
 //* Backend validation if user matched (Require accounts/identification)
 //* Display user at the top of table
-//* filter userInfo from playerState
+//* filter userInfo from playerState (Display filteredInfo below)
+//* Add buyin amount (Prompt User Approval)
 
 const WaitingTable = ({ playerStatus }: { playerStatus: IUserInfo[] }) => {
   const { state, useDisMessage } = UseStateContext();
@@ -53,7 +54,7 @@ const WaitingTable = ({ playerStatus }: { playerStatus: IUserInfo[] }) => {
   };
 
   return (
-    <TableContainer component={Paper}>
+    <TableContainer component={Paper} sx={{ mt: 1 }}>
       <Table sx={{ width: "contentfit" }} aria-label="customized table">
         <TableHead>
           <TableRow>

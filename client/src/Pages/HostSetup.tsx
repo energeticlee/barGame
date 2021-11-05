@@ -16,13 +16,11 @@ const HostSetup = () => {
   const { socket, roomInfo, message } = state;
   const history = useHistory();
 
-  //  Send socket request
+  //*  Send socket request
   const handleCreate = () => {
     if (roomInfo) {
       socket.emit("create-room", roomInfo, (res: ICallBack) => {
-        if (res.status)
-          //* Room Successfully Created
-          history.push(`/room/${roomInfo.roomName}`);
+        if (res.status) history.push(`/lobby/${roomInfo.roomName}`);
         else useDisMessage(res.msg);
       });
     }

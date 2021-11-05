@@ -5,7 +5,12 @@ import {
   useContext,
   ReactNode,
 } from "react";
-import { IUserInfo, IAvailableGame, IRoomInfo } from "./Helper/Interface";
+import {
+  IUserInfo,
+  IAvailableGame,
+  IRoomInfo,
+  IGameInfo,
+} from "./Helper/Interface";
 import io, { Socket } from "socket.io-client";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 //* App level state management
@@ -17,8 +22,8 @@ enum Actions {
   setPlayerStatus = "setPlayerStatus",
   setRoomInfo = "setRoomInfo",
   setAvailableGames = "setAvailableGames",
-  setSelectedGame = "setSelectedGame",
   setMessage = "setMessage",
+  setGameInfo = "setGameInfo",
 }
 
 interface IReducerState {
@@ -27,7 +32,7 @@ interface IReducerState {
   userData?: IUserInfo;
   playerStatus?: IUserInfo[];
   availableGames?: IAvailableGame[];
-  selectedGame?: string;
+  gameInfo?: IGameInfo;
   message?: string;
 }
 
@@ -39,7 +44,8 @@ interface IAction {
     | IAvailableGame[]
     | IUserInfo
     | IUserInfo[]
-    | IRoomInfo;
+    | IRoomInfo
+    | IGameInfo;
 }
 
 const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
@@ -69,8 +75,8 @@ const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
         availableGames: payload as IAvailableGame[],
       };
 
-    case Actions.setSelectedGame:
-      return { ...state, selectedGame: payload as string };
+    case Actions.setGameInfo:
+      return { ...state, gameInfo: payload as IGameInfo };
 
     case Actions.setMessage:
       return { ...state, message: payload as string };
@@ -98,8 +104,8 @@ export const useStore = (intial: IReducerState) => {
       payload,
     });
 
-  const useDisSelectedGame = (payload: string) =>
-    dispatch({ type: Actions.setSelectedGame, payload });
+  const useDisGameInfo = (payload: IGameInfo) =>
+    dispatch({ type: Actions.setGameInfo, payload });
 
   const useDisMessage = (payload: string) => {
     dispatch({ type: Actions.setMessage, payload });
@@ -116,7 +122,7 @@ export const useStore = (intial: IReducerState) => {
     useDisUserData,
     useDisPlayerStatus,
     useDisAvailableGames,
-    useDisSelectedGame,
+    useDisGameInfo,
     useDisMessage,
     updateHost,
     isHost,
@@ -132,7 +138,9 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
   const socket = io(`http://localhost:5050`, { transports: [`websocket`] });
 
   return (
-    <ContextData.Provider value={useStore({ socket })}>
+    <ContextData.Provider
+      value={useStore({ socket, gameInfo: { selectedGame: "" } })}
+    >
       {children}
     </ContextData.Provider>
   );

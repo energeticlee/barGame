@@ -113,15 +113,14 @@ io.on(`connection`, (socket) => {
   });
 
   //* UPDATE CHANGE GAME (DONE)
-  socket.on("change-game", ({ data, roomName }) => {
+  socket.on("change-setting", ({ gInfo, roomName }) => {
     const roomKey = getRoomKey(io, roomName);
-    GAME_DATA[roomKey].selectedGame = data;
-    console.log(
-      "GAME_DATA[roomKey]",
-      GAME_DATA[roomKey],
-      getRoomId(GAME_DATA, roomName)
-    );
-    io.in(roomName).emit("update-game", GAME_DATA[roomKey].selectedGame);
+
+    GAME_DATA[roomKey].selectedGameInfo = {
+      ...GAME_DATA[roomKey].selectedGameInfo,
+      ...gInfo,
+    };
+    io.in(roomName).emit("update-game", GAME_DATA[roomKey].selectedGameInfo);
   });
 
   //* PLAYER SET READY (DONE)
@@ -137,47 +136,12 @@ io.on(`connection`, (socket) => {
     } else cb({ status: false, msg: "Invalid Room" });
   });
 
-  //! PLAYER SET READY (DONE)
-  socket.on("set-ready", ({ username, readyState }, roomName, cb) => {
-    if (
-      GAME_DATA[roomName] &&
-      allPlayerReady(GAME_DATA[roomName].playerStatus)
-    ) {
-      const playerStatus = GAME_DATA[roomName].playerStatus;
-      //* UPDATE USER
-      const targetIndex = playerStatus.findIndex(
-        (p) => p.username === username
-      );
-      playerStatus.splice(targetIndex, 1, {
-        username,
-        readyState: !readyState,
-      });
-
-      socket.emit("player-status", playerStatus);
-    } else cb({ status: false, msg: "Players Not Ready" });
-  });
-
-  //* HOST CHANGE GAME (NOT DONE)
-  // socket.on("change-game", (selectedGame, roomName, hostName, cb) => {
-  //   //* Validate if host send request
-  //   if ((GAME_DATA[roomName].host = hostName))
-  //     socket.emit("game-change", selectedGame);
-  //   else cb(false); //* NOT A HOST
-  // });
-
-  //* HOST START GAME (NOT DONE)
-  socket.on(`start-game`, (data) => {
-    //? Change all user component to game board
-    //? How to manage player turn?
-    io.to(data.userToCall).emit(`requestToJoin`, {
-      signal: data.signalData,
-      from: data.from,
-      name: data.name,
-    });
-  });
-
-  //* HOST INITIALISE GAME START (NOT DONE)
-  socket.on("initialise-game", (roomName, selectedGame, playersInfo, cb) => {
+  //! HOST INITIALISE GAME START (NOT DONE)
+  socket.on("initialise-game", ({ username }, roomName, selectedGame, cb) => {
+    //* validate incoming request is from host
+    //* check all players ready
+    //* render game start
+    //* io.in(roomName).emit("start-game")
     switch (selectedGame) {
       case "inBetween":
         initialiseGame(GAME_DATA[roomName], playersInfo, InBetween);

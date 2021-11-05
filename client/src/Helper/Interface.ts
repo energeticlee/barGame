@@ -16,6 +16,7 @@ export interface IRoomInfo {
   roomName?: string;
   password?: string | undefined;
   selectedGame?: string;
+  ante?: number;
 }
 
 //* BUTTON INTERFACE
@@ -42,4 +43,10 @@ export interface ICallBack {
   data: IUserInfo[];
   isHost: boolean;
   userInfo: IUserInfo;
+}
+
+export interface IGameInfo {
+  selectedGame: string;
+  stake?: number;
+  minBuyin?: number;
 }

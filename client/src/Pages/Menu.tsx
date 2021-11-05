@@ -5,7 +5,7 @@ import { Container, Box, CssBaseline } from "@mui/material";
 
 interface Props {}
 
-const GameLobby = (props: Props) => {
+const Menu = (props: Props) => {
   return (
     <>
       <CssBaseline />
@@ -24,4 +24,4 @@ const GameLobby = (props: Props) => {
   );
 };
 
-export default GameLobby;
+export default Menu;

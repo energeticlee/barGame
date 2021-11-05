@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useWaitRoomSocket, useHandleReady } from "../Helper/customHooks";
 import { UseStateContext } from "../store";
 import { IAvailableGame } from "../Helper/Interface";
+import Stake from "../Components/Stake";
 import {
   Container,
   Box,
@@ -17,15 +18,10 @@ import WaitingTable from "../Components/WaitingTable";
 
 const WaitingRoom = () => {
   const { state, isHost } = UseStateContext();
-  const {
-    socket,
-    playerStatus,
-    selectedGame,
-    message,
-    availableGames,
-    userData,
-  } = state;
+  const { socket, playerStatus, gameInfo, message, availableGames, userData } =
+    state;
   const { roomName } = useParams<{ roomName?: string }>();
+  const { selectedGame } = gameInfo!;
 
   useWaitRoomSocket(roomName!, userData?.username!);
 
@@ -38,9 +34,17 @@ const WaitingRoom = () => {
   //* if all player ready, startGame enabled
   //* initialise game
   //* route to game board
-  const handleChangeGame = (e: SelectChangeEvent<string>) => {
-    socket.emit("change-game", { data: e.target.value, roomName });
-  };
+  //* require min 2 players to start
+
+  const handleChangeGame = (
+    e:
+      | SelectChangeEvent<string | number>
+      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) =>
+    socket.emit("change-setting", {
+      gInfo: { [e.target.name]: e.target.value },
+      roomName,
+    });
 
   return (
     <>
@@ -57,7 +61,7 @@ const WaitingRoom = () => {
           </Typography>
         </Box>
         <Typography
-          sx={{ height: 10, mt: 2 }}
+          sx={{ height: 5, margin: 2, fontSize: "h5" }}
           component="h1"
           variant="subtitle1"
         >
@@ -66,20 +70,20 @@ const WaitingRoom = () => {
         <Box
           component="form"
           sx={{
-            mt: 4,
+            mt: 2,
           }}
         >
           {isHost ? (
             <>
-              <InputLabel id="selectGame">Select Game</InputLabel>
+              <InputLabel id="selectGameLabel">Select Game</InputLabel>
               <Select
-                labelId="selectGame"
+                labelId="selectedGame"
                 required
-                fullWidth
-                id="selectGame"
+                id="selectedGame"
+                name="selectedGame"
                 value={selectedGame ? selectedGame : ""}
                 onChange={(e) => handleChangeGame(e)}
-                sx={{ mb: 2, textAlign: "left" }}
+                sx={{ textAlign: "left", width: 4 / 5 }}
               >
                 {availableGames &&
                   availableGames.map(({ gameName }: IAvailableGame, id) => {
@@ -90,10 +94,11 @@ const WaitingRoom = () => {
                     );
                   })}
               </Select>
+              {selectedGame && <Stake handleChangeGame={handleChangeGame} />}
             </>
           ) : (
             <Typography component="h1" variant="h5">
-              {selectedGame}
+              {selectedGame && `${selectedGame} : $0.50 Ante`}
             </Typography>
           )}
           <WaitingTable playerStatus={playerStatus!} />
@@ -105,7 +110,7 @@ const WaitingRoom = () => {
               disabled={!allPlayerReady()}
               onClick={() => useHandleReady(roomName!)}
             >
-              CREATE!
+              Start Game
             </Button>
           )}
         </Box>
