@@ -146,6 +146,8 @@ io.on(`connection`, (socket) => {
       return cb({ status: false, msg: "Please Select Game" });
     const { host, selectedGameInfo, playerStatus } = roomInfo;
 
+    //* Check all players has bought in ("stack")
+
     //* validate incoming data & all player ready
     if (username === host && allPlayerReady(playerStatus)) {
       const { selectedGame } = selectedGameInfo;
@@ -158,7 +160,8 @@ io.on(`connection`, (socket) => {
               msg: "Require Both Stake & Min Buyin Input",
             });
           //! NOT DONE YET
-          initialiseGame(roomInfo, playerStatus, InBetween);
+          console.log("playerStatus", playerStatus);
+          // initialiseGame(roomInfo, playerStatus, InBetween);
           io.in(roomName).emit("start-game");
           break;
 

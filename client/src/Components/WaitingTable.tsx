@@ -38,7 +38,13 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 //* filter userInfo from playerState (Display filteredInfo below)
 //* Add buyin amount (Prompt User Approval)
 
-const WaitingTable = ({ playerStatus }: { playerStatus: IUserInfo[] }) => {
+const WaitingTable = ({
+  playerStatus,
+  minBuyin,
+}: {
+  playerStatus: IUserInfo[];
+  minBuyin?: number;
+}) => {
   const { state, useDisMessage } = UseStateContext();
   const { socket, userData, roomInfo } = state;
   const { roomName } = roomInfo!;
@@ -53,21 +59,32 @@ const WaitingTable = ({ playerStatus }: { playerStatus: IUserInfo[] }) => {
     });
   };
 
+  const handleBuyin = async () => {
+    // Prompt Add
+    // emit("lobby-buyin", (callback))
+  };
+
   return (
     <TableContainer component={Paper} sx={{ mt: 1 }}>
       <Table sx={{ width: "contentfit" }} aria-label="customized table">
         <TableHead>
           <TableRow>
             <StyledTableCell>Name</StyledTableCell>
+            <StyledTableCell>{`Min-Buyin: $${
+              minBuyin ?? "-"
+            }`}</StyledTableCell>
             <StyledTableCell align="right">Status</StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {playerStatus &&
-            playerStatus.map(({ username, readyState }) => (
+            playerStatus.map(({ username, readyState, buyin }) => (
               <StyledTableRow key={username}>
                 <StyledTableCell component="th" scope="row">
                   {username}
+                </StyledTableCell>
+                <StyledTableCell component="th" scope="row">
+                  {buyin ?? "-"} <Button onClick={handleBuyin}>Add</Button>
                 </StyledTableCell>
                 <StyledTableCell align="right">
                   {readyState ? (

@@ -9,6 +9,7 @@ export interface IAppContext {
 export interface IUserInfo {
   username?: string;
   readyState?: boolean;
+  buyin?: number;
 }
 
 export interface IRoomInfo {

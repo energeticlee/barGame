@@ -1,6 +1,6 @@
 class Player {
-  constructor(player, buyin) {
-    this.playerName = player;
+  constructor({ username, stack }) {
+    this.playerName = username;
     this.buyin = buyin;
     this.winnings = 0;
   }

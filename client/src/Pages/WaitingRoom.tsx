@@ -124,14 +124,9 @@ const WaitingRoom = () => {
                   {`Ante: $${stake}`}
                 </Typography>
               )}
-              {minBuyin && (
-                <Typography component="h1" variant="h6" sx={{ ml: 2 }}>
-                  {`Min-Buyin: $${minBuyin}`}
-                </Typography>
-              )}
             </Container>
           )}
-          <WaitingTable playerStatus={playerStatus!} />
+          <WaitingTable playerStatus={playerStatus!} minBuyin={minBuyin} />
           {isHost && (
             <Button
               fullWidth

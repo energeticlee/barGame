@@ -1,7 +1,7 @@
 const initialiseGame = (gameRoom, playersInfo, gameFunc) => {
   gameRoom = {
     ...gameRoom,
-    selectedGame: new gameFunc(playersInfo),
+    gamePlayData: new gameFunc(playersInfo),
   };
 };
 
