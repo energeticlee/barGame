@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
-import { useWaitRoomSocket, useHandleReady } from "../Helper/customHooks";
+import { useWaitRoomSocket } from "../Helper/customHooks";
 import { UseStateContext } from "../store";
-import { IAvailableGame } from "../Helper/Interface";
+import { IAvailableGame, ICallBack } from "../Helper/Interface";
 import Stake from "../Components/Stake";
 import {
   Container,
@@ -17,9 +17,16 @@ import {
 import WaitingTable from "../Components/WaitingTable";
 
 const WaitingRoom = () => {
-  const { state, isHost } = UseStateContext();
-  const { socket, playerStatus, gameInfo, message, availableGames, userData } =
-    state;
+  const { state, isHost, useDisMessage } = UseStateContext();
+  const {
+    socket,
+    playerStatus,
+    gameInfo,
+    roomInfo,
+    message,
+    availableGames,
+    userData,
+  } = state;
   const { roomName } = useParams<{ roomName?: string }>();
   const { selectedGame, stake, minBuyin } = gameInfo!;
 
@@ -29,6 +36,15 @@ const WaitingRoom = () => {
     Object.values(playerStatus!).filter(
       (playerState) => playerState.readyState === false
     ).length === 0;
+
+  const useHandleReady = (roomName: string) => {
+    if (roomInfo) {
+      //* Send socket request
+      socket.emit("initialise-game", userData, roomName, (res: ICallBack) => {
+        if (!res.status) useDisMessage(res.msg);
+      });
+    }
+  };
 
   //* Listen for READY (Update backend game state)
   //* if all player ready, startGame enabled

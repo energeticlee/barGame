@@ -127,7 +127,7 @@ io.on(`connection`, (socket) => {
   socket.on("update-ready", (username, roomName, ready, cb) => {
     const roomKey = getRoomKey(io, roomName);
     if (GAME_DATA[roomKey]) {
-      const playerStatus = GAME_DATA[roomKey].playerStatus;
+      const { playerStatus } = GAME_DATA[roomKey];
       const targetIndex = playerStatus.findIndex(
         (p) => p.username === username
       );
@@ -137,19 +137,36 @@ io.on(`connection`, (socket) => {
   });
 
   //! HOST INITIALISE GAME START (NOT DONE)
-  socket.on("initialise-game", ({ username }, roomName, selectedGame, cb) => {
-    //* validate incoming request is from host
-    //* check all players ready
-    //* render game start
-    //* io.in(roomName).emit("start-game")
-    switch (selectedGame) {
-      case "inBetween":
-        initialiseGame(GAME_DATA[roomName], playersInfo, InBetween);
-        cb(true);
-        break;
-      default:
-        return cb(false); //* INVALID INPUT
+  socket.on("initialise-game", ({ username }, roomName, cb) => {
+    const roomKey = getRoomKey(io, roomName);
+    const roomInfo = GAME_DATA[roomKey];
+    if (!roomInfo.selectedGameInfo)
+      return cb({ status: false, msg: "Require Game Setting Input" });
+    else if (!roomInfo.selectedGameInfo.selectedGame)
+      return cb({ status: false, msg: "Please Select Game" });
+    const { host, selectedGameInfo, playerStatus } = roomInfo;
+
+    //* validate incoming data & all player ready
+    if (username === host && allPlayerReady(playerStatus)) {
+      const { selectedGame } = selectedGameInfo;
+      switch (selectedGame) {
+        case "inBetween":
+          const { stake, minBuyin } = roomInfo.selectedGameInfo;
+          if (!stake || !minBuyin)
+            return cb({
+              status: false,
+              msg: "Require Both Stake & Min Buyin Input",
+            });
+          //! NOT DONE YET
+          initialiseGame(roomInfo, playerStatus, InBetween);
+          io.in(roomName).emit("start-game");
+          break;
+
+        default:
+          return cb({ status: false, msg: "Invalid Request" }); //* INVALID INPUT
+      }
     }
+    return cb({ status: false, msg: "Invalid Request" });
   });
 
   //? kill all on disconnect? (NOT DONE)

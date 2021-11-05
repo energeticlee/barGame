@@ -56,23 +56,3 @@ export const useWaitRoomSocket = (roomName: string, username: string) => {
     });
   }, []);
 };
-
-export const useHandleReady = async (roomName: string) => {
-  const { state, useDisMessage } = UseStateContext();
-  const { socket, userData, roomInfo, gameInfo } = state;
-  const { selectedGame } = gameInfo!;
-
-  //* Userdata validation
-  if (roomInfo) {
-    //* Send socket request
-    socket.emit(
-      "initialise-game",
-      userData,
-      roomName,
-      selectedGame,
-      (res: ICallBack) => {
-        if (!res.status) useDisMessage(res.msg);
-      }
-    );
-  }
-};
