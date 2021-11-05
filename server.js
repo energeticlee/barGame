@@ -159,7 +159,7 @@ io.on(`connection`, (socket) => {
               status: false,
               msg: "Require Both Stake & Min Buyin Input",
             });
-          //! NOT DONE YET
+          //! NOT DONE YET (SETTLE LOBBY BUYIN)
           console.log("playerStatus", playerStatus);
           // initialiseGame(roomInfo, playerStatus, InBetween);
           io.in(roomName).emit("start-game");

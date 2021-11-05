@@ -1,9 +1,16 @@
 class Player {
   constructor({ username, stack }) {
     this.playerName = username;
-    this.buyin = buyin;
+    this.stack = stack;
     this.winnings = 0;
   }
+
+  cashOut = () => {
+    const balance = this.stack + this.winnings;
+    this.stack = 0;
+    this.winnings = 0;
+    return balance;
+  };
 }
 
 class InBetween {
@@ -13,9 +20,9 @@ class InBetween {
     this.middleCard;
     this.pot;
     this.turn = 0; //* Index of array
-    this.gameStatus = this.populatePlayers(playersInfo);
+    this.playerStatus = this.populatePlayers(playersInfo);
   }
-  //* Player tracker: turn, players [{ playerName, buyin, winnings }]
+  //* Player tracker: turn, players [{ playerName, stack, winnings }]
 
   issueTwoCards = () => {
     if (this.currentDeck.length > 10) this.newDeck();
@@ -62,15 +69,16 @@ class InBetween {
     return players.forEach((player) => playerList.push(new Player(player)));
   };
 
-  newPlayer = (playerName, buyin) => {
-    new Player(playerName, buyin);
+  //* New player join mid-game
+  newPlayer = (playerName, stack) => {
+    new Player(playerName, stack);
   };
 }
 
 module.exports = InBetween;
 
 //* Game condition
-//* Start Game = new Inbetween(playerList) { player, buyin }
+//* Start Game = new Inbetween(playerList) { player, stack }
 //* Player take turns to play (if turn, wait for player to act)
 
 //* issueTwoCards
