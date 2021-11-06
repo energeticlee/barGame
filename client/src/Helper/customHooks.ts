@@ -38,6 +38,10 @@ export const useWaitRoomSocket = (roomName: string, username: string) => {
 
     socket.on("update-game", (data: IGameInfo) => useDisGameInfo(data));
 
+    socket.on("update-lobby-buyin", (data: IUserInfo[]) =>
+      useDisPlayerStatus(data)
+    );
+
     socket.emit("get-players", roomName, (res: ICallBack) => {
       if (res.status) useDisPlayerStatus(res.data);
       else useDisMessage(res.msg!);

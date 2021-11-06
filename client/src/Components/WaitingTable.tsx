@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { styled } from "@mui/material/styles";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import {
@@ -9,10 +10,12 @@ import {
   Paper,
   Button,
 } from "@mui/material";
+import { AccountBalanceWallet } from "@mui/icons-material";
 import { IUserInfo, ICallBack } from "../Helper/Interface";
 import { UseStateContext } from "../store";
+import LobbyBuyinDialog from "./LobbyBuyinDialog";
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
+export const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.common.black,
     color: theme.palette.common.white,
@@ -45,6 +48,7 @@ const WaitingTable = ({
   playerStatus: IUserInfo[];
   minBuyin?: number;
 }) => {
+  const [openDialog, setOpenDialog] = useState(false);
   const { state, useDisMessage } = UseStateContext();
   const { socket, userData, roomInfo } = state;
   const { roomName } = roomInfo!;
@@ -59,13 +63,9 @@ const WaitingTable = ({
     });
   };
 
-  const handleBuyin = async () => {
-    // Prompt Add
-    // emit("lobby-buyin", (callback))
-  };
-
   return (
     <TableContainer component={Paper} sx={{ mt: 1 }}>
+      <LobbyBuyinDialog setOpenDialog={setOpenDialog} openDialog={openDialog} />
       <Table sx={{ width: "contentfit" }} aria-label="customized table">
         <TableHead>
           <TableRow>
@@ -73,7 +73,12 @@ const WaitingTable = ({
             <StyledTableCell>{`Min-Buyin: $${
               minBuyin ?? "-"
             }`}</StyledTableCell>
-            <StyledTableCell align="right">Status</StyledTableCell>
+            <StyledTableCell align="right">
+              <AccountBalanceWallet
+                sx={{ cursor: "pointer" }}
+                onClick={() => setOpenDialog(true)}
+              />
+            </StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -84,7 +89,7 @@ const WaitingTable = ({
                   {username}
                 </StyledTableCell>
                 <StyledTableCell component="th" scope="row">
-                  {buyin ?? "-"} <Button onClick={handleBuyin}>Add</Button>
+                  {buyin ? `$${buyin}` : "-"}
                 </StyledTableCell>
                 <StyledTableCell align="right">
                   {readyState ? (

@@ -8,12 +8,30 @@ const getRoomId = (gData, rName) => {
   return target.split("$%$")[0];
 };
 
-const getRoomKey = (io, rName) =>
-  `${[...io.sockets.adapter.rooms.get(rName)][0]}$%$${rName}`;
+const getRoomKey = (io, rName) => {
+  if (io.sockets.adapter.rooms.get(rName))
+    return `${[...io.sockets.adapter.rooms.get(rName)][0]}$%$${rName}`;
+  else return false;
+};
 
 const allPlayerReady = (playerStatus) =>
   Object.values(playerStatus).filter(
     (playerState) => playerState.readyState === false
   ).length === 0;
 
-module.exports = { getRoomName, getRoomId, getRoomKey, allPlayerReady };
+const validPlayer = (playerStatus, username) =>
+  Object.values(playerStatus).filter(
+    (playerState) => playerState.username === username
+  ).length === 1;
+
+const getPlayerIndex = (playerStatus, username) =>
+  playerStatus.findIndex((p) => p.username === username);
+
+module.exports = {
+  getRoomName,
+  getRoomId,
+  getRoomKey,
+  allPlayerReady,
+  validPlayer,
+  getPlayerIndex,
+};

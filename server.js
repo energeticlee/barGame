@@ -12,6 +12,8 @@ const {
   getRoomId,
   getRoomKey,
   allPlayerReady,
+  validPlayer,
+  getPlayerIndex,
 } = require("./GameLogic/helper");
 
 const PORT = 5050;
@@ -128,12 +130,33 @@ io.on(`connection`, (socket) => {
     const roomKey = getRoomKey(io, roomName);
     if (GAME_DATA[roomKey]) {
       const { playerStatus } = GAME_DATA[roomKey];
-      const targetIndex = playerStatus.findIndex(
-        (p) => p.username === username
-      );
-      playerStatus[targetIndex].readyState = ready;
+      const playerIndex = getPlayerIndex(playerStatus, username);
+      playerStatus[playerIndex].readyState = ready;
       io.in(roomName).emit("update-player-status", playerStatus);
     } else cb({ status: false, msg: "Invalid Room" });
+  });
+
+  //* PLAYER SET BUYIN (DONE)
+  socket.on("lobby-buyin", ({ username }, { roomName }, buyinValue, cb) => {
+    console.log("HIT");
+    const roomKey = getRoomKey(io, roomName);
+    const { playerStatus } = GAME_DATA[roomKey];
+    //* CHECK ROOM IS VALID
+    if (!roomKey)
+      return cb({ status: false, msg: "Invalid Input", redirect: true });
+    //* CHECK INPUT IS VALID
+    if (!+buyinValue) return cb({ status: false, msg: "Invalid Input" });
+    //* CHECK USERNAME IS VALID
+    if (!validPlayer(playerStatus, username))
+      return cb({ status: false, msg: "Invalid User" });
+
+    //* SET BUYIN TO USERINFO
+    const playerIndex = getPlayerIndex(playerStatus, username);
+    playerStatus[playerIndex] = {
+      ...playerStatus[playerIndex],
+      buyin: buyinValue,
+    };
+    io.in(roomName).emit("update-lobby-buyin", playerStatus);
   });
 
   //! HOST INITIALISE GAME START (NOT DONE)

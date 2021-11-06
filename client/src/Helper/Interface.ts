@@ -44,6 +44,7 @@ export interface ICallBack {
   data: IUserInfo[];
   isHost: boolean;
   userInfo: IUserInfo;
+  redirect: boolean;
 }
 
 export interface IGameInfo {
