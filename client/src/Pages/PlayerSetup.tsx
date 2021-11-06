@@ -1,6 +1,6 @@
 import { useHistory } from "react-router-dom";
 import { UseStateContext } from "../store";
-import { IUserInfo, ICallBack } from "../Helper/Interface";
+import { ICallBack } from "../Helper/Interface";
 import {
   Container,
   Box,

@@ -52,3 +52,26 @@ export interface IGameInfo {
   stake?: number;
   minBuyin?: number;
 }
+
+interface InBetweenPlayer {
+  playerName: string;
+  stack: number;
+  winnings: number;
+  // cashOut: () => number;
+}
+export interface InBetweenState {
+  // issueTwoCards: () => void;
+  // attemptBetween: () => number;
+  // outcome: () => boolean;
+  // drawACard: () => number;
+  // newDeck: () => number[];
+  // populatePlayers: () => InBetweenPlayer[];
+  // newPlayer: () => void;
+  // currentDeck: number[];
+  issuedCards: number[];
+  turn: number;
+  playerStatus: InBetweenPlayer[];
+  stake: number;
+  minBuyin: number;
+  pot: number;
+}

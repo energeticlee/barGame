@@ -176,7 +176,7 @@ io.on(`connection`, (socket) => {
       const { selectedGame } = selectedGameInfo;
       switch (selectedGame) {
         case "inBetween":
-          const { stake, minBuyin } = roomInfo.selectedGameInfo;
+          const { stake, minBuyin } = selectedGameInfo;
           if (!stake || !minBuyin)
             return cb({
               status: false,
@@ -189,11 +189,11 @@ io.on(`connection`, (socket) => {
             });
           GAME_DATA[roomKey] = {
             ...GAME_DATA[roomKey],
-            gamePlayData: new InBetween(playerStatus),
+            gameState: new InBetween(playerStatus, selectedGameInfo),
           };
-          io.in(roomName).emit("start-game", {
-            game: selectedGame.toLowerCase(),
-            roomName,
+          //! RETURN BACK SELECTED DATA
+          io.in(roomName).emit("start-inbetween", roomName, {
+            gameState: GAME_DATA[roomKey].gameState,
           });
           break;
 

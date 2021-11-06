@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useHistory } from "react-router-dom";
-import { IUserInfo, ICallBack, IGameInfo } from "./Interface";
+import { IUserInfo, ICallBack, IGameInfo, InBetweenState } from "./Interface";
 import { UseStateContext } from "../store";
 
 //* DIRECTORY
@@ -14,6 +14,7 @@ export const useWaitRoomSocket = (roomName: string, username: string) => {
     state,
     useDisPlayerStatus,
     useDisGameInfo,
+    useDisInBetweenState,
     updateHost,
   } = UseStateContext();
   const { socket } = state;
@@ -47,9 +48,10 @@ export const useWaitRoomSocket = (roomName: string, username: string) => {
       else useDisMessage(res.msg!);
     });
 
-    socket.on("start-game", ({ game, roomName }) =>
-      histroy.push(`/room/${game}/${roomName}`)
-    );
+    socket.on("start-inbetween", (roomName, gameState: InBetweenState) => {
+      useDisInBetweenState(gameState);
+      histroy.push(`/room/inbetween/${roomName}`);
+    });
 
     socket.emit("is-host", { roomName, username }, (res: ICallBack) => {
       if (res.status) updateHost(res.isHost);

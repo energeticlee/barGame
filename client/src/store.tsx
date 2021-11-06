@@ -10,6 +10,7 @@ import {
   IAvailableGame,
   IRoomInfo,
   IGameInfo,
+  InBetweenState,
 } from "./Helper/Interface";
 import io, { Socket } from "socket.io-client";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
@@ -24,6 +25,7 @@ enum Actions {
   setAvailableGames = "setAvailableGames",
   setMessage = "setMessage",
   setGameInfo = "setGameInfo",
+  setGameState = "setGameState",
 }
 
 interface IReducerState {
@@ -34,6 +36,7 @@ interface IReducerState {
   availableGames?: IAvailableGame[];
   gameInfo?: IGameInfo;
   message?: string;
+  gameState?: InBetweenState;
 }
 
 interface IAction {
@@ -45,7 +48,8 @@ interface IAction {
     | IUserInfo
     | IUserInfo[]
     | IRoomInfo
-    | IGameInfo;
+    | IGameInfo
+    | InBetweenState;
 }
 
 const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
@@ -78,6 +82,9 @@ const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
     case Actions.setGameInfo:
       return { ...state, gameInfo: payload as IGameInfo };
 
+    case Actions.setGameState:
+      return { ...state, gameState: payload as InBetweenState };
+
     case Actions.setMessage:
       return { ...state, message: payload as string };
 
@@ -107,6 +114,9 @@ export const useStore = (intial: IReducerState) => {
   const useDisGameInfo = (payload: IGameInfo) =>
     dispatch({ type: Actions.setGameInfo, payload });
 
+  const useDisInBetweenState = (payload: InBetweenState) =>
+    dispatch({ type: Actions.setGameState, payload });
+
   const useDisMessage = (payload: string) => {
     dispatch({ type: Actions.setMessage, payload });
     setTimeout(() => dispatch({ type: Actions.setMessage, payload: "" }), 2000);
@@ -124,6 +134,7 @@ export const useStore = (intial: IReducerState) => {
     useDisAvailableGames,
     useDisGameInfo,
     useDisMessage,
+    useDisInBetweenState,
     updateHost,
     isHost,
   };

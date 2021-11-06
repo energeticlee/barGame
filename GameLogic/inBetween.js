@@ -14,15 +14,29 @@ class Player {
 }
 
 class InBetween {
-  constructor(playersInfo) {
+  constructor(playersInfo, { stake, minBuyin }) {
     this.currentDeck = this.newDeck();
     this.issuedCards = [];
     this.middleCard;
-    this.pot;
-    this.turn = 0; //* Index of array
     this.playerStatus = this.populatePlayers(playersInfo);
+    this.pot = 0;
+    this.turn = 0; //* Index of array
+    this.stake = stake;
+    this.minBuyin = minBuyin;
   }
   //* Player tracker: turn, players [{ playerName, stack, winnings }]
+
+  anteUp = () => {
+    if (this.pot <= 0) {
+      this.playerStatus.map((player) => {
+        player.stack -= this.stake;
+        this.pot += this.stake;
+      });
+    }
+    //* all players chip in ante
+    //* update all player stack
+    //* return ante collected
+  };
 
   issueTwoCards = () => {
     if (this.currentDeck.length > 10) this.newDeck();
@@ -72,7 +86,7 @@ class InBetween {
 
   //* New player join mid-game
   newPlayer = (playerName, stack) => {
-    new Player(playerName, stack);
+    this.player.push(new Player(playerName, stack));
   };
 }
 
