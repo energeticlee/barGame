@@ -5,8 +5,7 @@ const io = require(`socket.io`)(server);
 const cors = require(`cors`);
 const path = require(`path`);
 // const { v4: uuidV4 } = require(`uuid`);
-const InBetween = require("./GameLogic/inBetween").default;
-const initialiseGame = require("./GameLogic/initialiseGame").default;
+const InBetween = require("./GameLogic/inBetween");
 const {
   getRoomName,
   getRoomId,
@@ -14,6 +13,7 @@ const {
   allPlayerReady,
   validPlayer,
   getPlayerIndex,
+  allBoughtIn,
 } = require("./GameLogic/helper");
 
 const PORT = 5050;
@@ -138,7 +138,6 @@ io.on(`connection`, (socket) => {
 
   //* PLAYER SET BUYIN (DONE)
   socket.on("lobby-buyin", ({ username }, { roomName }, buyinValue, cb) => {
-    console.log("HIT");
     const roomKey = getRoomKey(io, roomName);
     const { playerStatus } = GAME_DATA[roomKey];
     //* CHECK ROOM IS VALID
@@ -167,6 +166,7 @@ io.on(`connection`, (socket) => {
       return cb({ status: false, msg: "Require Game Setting Input" });
     else if (!roomInfo.selectedGameInfo.selectedGame)
       return cb({ status: false, msg: "Please Select Game" });
+    //* CHECK ALL USER BUYIN
     const { host, selectedGameInfo, playerStatus } = roomInfo;
 
     //* Check all players has bought in ("stack")
@@ -182,10 +182,19 @@ io.on(`connection`, (socket) => {
               status: false,
               msg: "Require Both Stake & Min Buyin Input",
             });
-          //! NOT DONE YET (SETTLE LOBBY BUYIN)
-          console.log("playerStatus", playerStatus);
-          // initialiseGame(roomInfo, playerStatus, InBetween);
-          io.in(roomName).emit("start-game");
+          if (!allBoughtIn(playerStatus))
+            return cb({
+              status: false,
+              msg: "Not all players are bought in",
+            });
+          GAME_DATA[roomKey] = {
+            ...GAME_DATA[roomKey],
+            gamePlayData: new InBetween(playerStatus),
+          };
+          io.in(roomName).emit("start-game", {
+            game: selectedGame.toLowerCase(),
+            roomName,
+          });
           break;
 
         default:

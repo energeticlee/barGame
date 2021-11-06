@@ -1,7 +1,7 @@
 class Player {
-  constructor({ username, stack }) {
+  constructor({ username, buyin }) {
     this.playerName = username;
-    this.stack = stack;
+    this.stack = buyin;
     this.winnings = 0;
   }
 
@@ -66,7 +66,8 @@ class InBetween {
 
   populatePlayers = (players) => {
     let playerList = [];
-    return players.forEach((player) => playerList.push(new Player(player)));
+    players.map((player) => playerList.push(new Player(player)));
+    return playerList;
   };
 
   //* New player join mid-game

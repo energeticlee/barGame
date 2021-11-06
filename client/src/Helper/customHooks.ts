@@ -47,8 +47,8 @@ export const useWaitRoomSocket = (roomName: string, username: string) => {
       else useDisMessage(res.msg!);
     });
 
-    socket.on("start-game", (roomName) =>
-      histroy.push(`/room/inbetween/${roomName}`)
+    socket.on("start-game", ({ game, roomName }) =>
+      histroy.push(`/room/${game}/${roomName}`)
     );
 
     socket.emit("is-host", { roomName, username }, (res: ICallBack) => {

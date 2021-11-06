@@ -24,6 +24,10 @@ const validPlayer = (playerStatus, username) =>
     (playerState) => playerState.username === username
   ).length === 1;
 
+const allBoughtIn = (playerStatus) =>
+  Object.values(playerStatus).filter((playerState) => !playerState.buyin)
+    .length === 0;
+
 const getPlayerIndex = (playerStatus, username) =>
   playerStatus.findIndex((p) => p.username === username);
 
@@ -34,4 +38,5 @@ module.exports = {
   allPlayerReady,
   validPlayer,
   getPlayerIndex,
+  allBoughtIn,
 };
