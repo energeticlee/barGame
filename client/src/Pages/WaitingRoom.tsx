@@ -15,6 +15,7 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import WaitingTable from "../Components/WaitingTable";
+import ReqTable from "../Components/ReqTable";
 
 const WaitingRoom = () => {
   const { state, isHost, useDisMessage } = UseStateContext();
@@ -129,6 +130,7 @@ const WaitingRoom = () => {
             </Container>
           )}
           <WaitingTable playerStatus={playerStatus!} minBuyin={minBuyin} />
+          <ReqTable />
           {isHost && (
             <Button
               fullWidth

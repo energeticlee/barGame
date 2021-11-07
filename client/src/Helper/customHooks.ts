@@ -20,6 +20,7 @@ export const useWaitRoomSocket = (
     useDisGameInfo,
     useDisInBetweenState,
     updateHost,
+    useDisReq,
   } = UseStateContext();
   const { socket } = state;
   const histroy = useHistory();
@@ -56,6 +57,14 @@ export const useWaitRoomSocket = (
       useDisInBetweenState(gameState);
       histroy.push(`/room/inbetween/${roomName}`);
     });
+
+    socket.on(
+      "topup-request-host",
+      (reqUsername: string, topUpValue: string) => {
+        //* Dispatch request (reqUsername, topUpValue)
+        useDisReq({ reqUsername, amount: topUpValue });
+      }
+    );
 
     socket.emit("is-host", { roomName, userId }, (res: ICallBack) => {
       if (res.status) updateHost(res.isHost);

@@ -68,3 +68,8 @@ export interface InBetweenState {
   minBuyin: number;
   pot: number;
 }
+
+export interface IRequest {
+  reqUsername: string;
+  amount: string;
+}

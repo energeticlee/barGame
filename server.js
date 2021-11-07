@@ -155,6 +155,7 @@ io.on(`connection`, (socket) => {
   });
 
   //* PLAYER SET BUYIN (DONE)
+  //! Add topup-confirm as middleware
   socket.on(
     "lobby-buyin",
     ({ username, userId }, { roomName }, buyinValue, cb) => {
@@ -255,7 +256,7 @@ io.on(`connection`, (socket) => {
   //! TOPUP-CONFRIM (NOT DONE)
   socket.on(
     "topup-confirm",
-    ({ userId }, { roomName }, { requestUser, topUpValue }, cb) => {
+    ({ userId }, roomName, { requestUser, topUpValue }, cb) => {
       //* Validate is host
       const roomKey = getRoomKey(io, roomName);
       const { playerStatus, host } = GAME_DATA[roomKey];
@@ -269,11 +270,13 @@ io.on(`connection`, (socket) => {
       io.in(roomName).emit("update-stack", data);
     }
   );
-  //? HIT (VALIDATE PLAYER & TURN => HIT & UPDATE)
-  //? PASS (VALIDATE PLAYER & TURN => HIT & UPDATE)
-  //? LEAVE-GAME => CASHOUT
+  //! CATCH TOPUP-REJECT (NOT DONE)
+  //! HIT (NOT DONE)
+  //! PASS (NOT DONE)
+  //! LEAVE-GAME => CASHOUT (NOT DONE)
 
-  //? kill all on disconnect? (NOT DONE)
+  //! HANDLE DISCONNECTED USER (NOT DONE)
+  //! kill all on disconnect? (NOT DONE)
   socket.on(`disconnect`, () => {
     socket.broadcast.emit(`callEnded`);
   });
