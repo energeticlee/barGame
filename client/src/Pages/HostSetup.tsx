@@ -13,7 +13,8 @@ import {
 const HostSetup = () => {
   const { state, useDisMessage, useDisUserData, useDisRoomInfo } =
     UseStateContext();
-  const { socket, roomInfo, message } = state;
+  const { socket, roomInfo, message, userData } = state;
+  const { userId } = userData!;
   const history = useHistory();
 
   //*  Send socket request
@@ -55,7 +56,9 @@ const HostSetup = () => {
             autoFocus
             onChange={(e) => {
               useDisUserData({ username: e.target.value });
-              useDisRoomInfo({ host: e.target.value });
+              useDisRoomInfo({
+                host: { hostName: e.target.value, hostId: userId! },
+              });
             }}
           />
           <TextField

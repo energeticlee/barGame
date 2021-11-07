@@ -11,5 +11,13 @@
 
 // console.log(GAME_DATA[roomId].playerStatus);
 
-const str = "1a23";
-console.log(!+str ? true : false);
+const info = [
+  { username: "aa", userId: "_h8kXGhB2iTbsNFjAAAf", readyState: true },
+];
+
+const result = info.map((user) => {
+  delete user.userId;
+  return user;
+});
+
+console.log("result", result);

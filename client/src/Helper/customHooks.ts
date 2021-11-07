@@ -7,7 +7,11 @@ import { UseStateContext } from "../store";
 //? useWaitRoomSocket
 //? useHandleReady
 
-export const useWaitRoomSocket = (roomName: string, username: string) => {
+export const useWaitRoomSocket = (
+  roomName: string,
+  username: string,
+  userId: string
+) => {
   const {
     useDisMessage,
     useDisAvailableGames,
@@ -53,7 +57,7 @@ export const useWaitRoomSocket = (roomName: string, username: string) => {
       histroy.push(`/room/inbetween/${roomName}`);
     });
 
-    socket.emit("is-host", { roomName, username }, (res: ICallBack) => {
+    socket.emit("is-host", { roomName, userId }, (res: ICallBack) => {
       if (res.status) updateHost(res.isHost);
       else {
         updateHost(res.isHost);

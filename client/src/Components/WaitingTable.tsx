@@ -52,13 +52,13 @@ const WaitingTable = ({
   const { state, useDisMessage } = UseStateContext();
   const { socket, userData, roomInfo } = state;
   const { roomName } = roomInfo!;
-  const { username } = userData!;
+  // const { username, userId } = userData!;
 
   // const filteredPlayer = (arr: IUserInfo[], username: string) =>
   //   arr.filter((friend) => friend.username !== username);
 
   const handleClick = (ready: boolean) => {
-    socket.emit("update-ready", username, roomName, ready, (res: ICallBack) => {
+    socket.emit("update-ready", userData, roomName, ready, (res: ICallBack) => {
       if (!res.status) useDisMessage(res.msg);
     });
   };

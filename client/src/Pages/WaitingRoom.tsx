@@ -29,8 +29,9 @@ const WaitingRoom = () => {
   } = state;
   const { roomName } = useParams<{ roomName?: string }>();
   const { selectedGame, stake, minBuyin } = gameInfo!;
+  const { username, userId } = userData!;
 
-  useWaitRoomSocket(roomName!, userData?.username!);
+  useWaitRoomSocket(roomName!, username!, userId!);
 
   const allPlayerReady = () =>
     Object.values(playerStatus!).filter(
@@ -60,6 +61,7 @@ const WaitingRoom = () => {
     socket.emit("change-setting", {
       gInfo: { [e.target.name]: e.target.value },
       roomName,
+      userId,
     });
 
   return (

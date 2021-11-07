@@ -1,17 +1,23 @@
 const getRoomName = (gData, rName) =>
   Object.keys(gData).find((key) => key.split("$%$")[1] === rName); //* Return roomkey
 
-const getRoomId = (gData, rName) => {
-  const target = Object.keys(gData).find(
-    (key) => key.split("$%$")[1] === rName
-  ); //* Return roomkey
-  return target.split("$%$")[0];
-};
-
 const getRoomKey = (io, rName) => {
   if (io.sockets.adapter.rooms.get(rName))
     return `${[...io.sockets.adapter.rooms.get(rName)][0]}$%$${rName}`;
   else return false;
+};
+
+const removePlayerId = (playerStatus) =>
+  playerStatus.map((user) => {
+    const { userId, ...rest } = user;
+    return rest;
+  });
+
+const isHost = (gdata, id) => gdata.host.hostId === id;
+
+const userValidation = (playerStatus, username, id) => {
+  const targetUser = playerStatus.find((user) => user.username === username);
+  return targetUser?.userId === id;
 };
 
 const allPlayerReady = (playerStatus) =>
@@ -33,8 +39,10 @@ const getPlayerIndex = (playerStatus, username) =>
 
 module.exports = {
   getRoomName,
-  getRoomId,
   getRoomKey,
+  removePlayerId,
+  isHost,
+  userValidation,
   allPlayerReady,
   validPlayer,
   getPlayerIndex,

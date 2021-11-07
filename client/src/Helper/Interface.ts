@@ -7,13 +7,14 @@ export interface IAppContext {
 }
 
 export interface IUserInfo {
+  userId?: string;
   username?: string;
   readyState?: boolean;
   buyin?: number;
 }
 
 export interface IRoomInfo {
-  host?: string;
+  host?: { hostName: string; hostId: string };
   roomName?: string;
   password?: string | undefined;
   selectedGame?: string;

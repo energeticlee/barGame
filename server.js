@@ -8,10 +8,12 @@ const path = require(`path`);
 const InBetween = require("./GameLogic/inBetween");
 const {
   getRoomName,
-  getRoomId,
+  removePlayerId,
+  isHost,
   getRoomKey,
   allPlayerReady,
   validPlayer,
+  userValidation,
   getPlayerIndex,
   allBoughtIn,
 } = require("./GameLogic/helper");
@@ -39,8 +41,7 @@ const GAME_DATA = {};
 io.on(`connection`, (socket) => {
   //* Game Data { roomName, pw?, gameRules? { hostName, playerInfo, score } }
 
-  //! No io.to() => Don't need socket.id
-  // socket.emit(`personalId`, socket.id);
+  socket.emit(`personalId`, socket.id);
 
   //* HOST CREATE ROOM (DONE)
   socket.on("create-room", ({ roomName, host, password }, cb) => {
@@ -57,7 +58,9 @@ io.on(`connection`, (socket) => {
       GAME_DATA[roomKey] = {
         host,
         password,
-        playerStatus: [{ username: host, readyState: true }],
+        playerStatus: [
+          { username: host.hostName, userId: host.hostId, readyState: true },
+        ],
       };
       cb({ status: true });
     }
@@ -65,24 +68,28 @@ io.on(`connection`, (socket) => {
 
   //* GET ALL PLAYERS (DONE)
   socket.on("get-players", (roomName, cb) => {
-    if (!GAME_DATA[getRoomName(GAME_DATA, roomName)])
-      cb({ status: false, msg: "Room Does Not Exist" });
-    else
+    const rmName = getRoomName(GAME_DATA, roomName);
+    if (!GAME_DATA[rmName]) cb({ status: false, msg: "Room Does Not Exist" });
+    else {
+      //* SEND REQUIRED DATA ONLY (Remove socketId)
+      const { playerStatus } = GAME_DATA[rmName];
+      const data = removePlayerId(playerStatus);
       cb({
         status: true,
-        data: GAME_DATA[getRoomName(GAME_DATA, roomName)]?.playerStatus,
+        data,
       });
+    }
   });
 
   //* GET ALL PLAYERS (DONE)
-  socket.on("is-host", ({ roomName, username }, cb) => {
+  socket.on("is-host", ({ roomName, userId }, cb) => {
     if (!GAME_DATA[getRoomName(GAME_DATA, roomName)])
       //* ROOM DON'T NOT EXIST
       cb({ status: false, msg: "Room Does Not Exist" });
     //* ROOM EXIST
     else {
       const roomKey = getRoomKey(io, roomName);
-      if (GAME_DATA[roomKey].host === username)
+      if (isHost(GAME_DATA[roomKey], userId))
         //* IS HOST
         cb({
           status: true,
@@ -94,7 +101,7 @@ io.on(`connection`, (socket) => {
   });
 
   //* PLAYER JOIN ROOM (DONE)
-  socket.on(`join-room`, ({ roomName, password }, { username }, cb) => {
+  socket.on(`join-room`, ({ roomName, password }, { username, userId }, cb) => {
     if (getRoomName(GAME_DATA, roomName)) {
       //* ROOM EXIST
       const roomKey = getRoomKey(io, roomName);
@@ -105,9 +112,14 @@ io.on(`connection`, (socket) => {
       ) {
         //* PASSWORD MATCH || NO PASSWORD REQUIRED
         socket.join(roomName);
-        GAME_DATA[roomKey].playerStatus.push({ username, readyState: false });
+        GAME_DATA[roomKey].playerStatus.push({
+          username,
+          userId,
+          readyState: false,
+        });
         cb({ status: true });
-        socket.to(roomName).emit("new-join", GAME_DATA[roomKey].playerStatus);
+        const data = removePlayerId(GAME_DATA[roomKey].playerStatus);
+        socket.to(roomName).emit("new-join", data);
       }
       //* INCORRECT PASSWORD
       else cb({ status: false, msg: "Invalid Password" });
@@ -115,8 +127,10 @@ io.on(`connection`, (socket) => {
   });
 
   //* UPDATE CHANGE GAME (DONE)
-  socket.on("change-setting", ({ gInfo, roomName }) => {
+  socket.on("change-setting", ({ gInfo, roomName, userId }, cb) => {
     const roomKey = getRoomKey(io, roomName);
+    if (!isHost(GAME_DATA[roomKey], userId))
+      return cb({ status: false, msg: "No Authorisation" });
 
     GAME_DATA[roomKey].selectedGameInfo = {
       ...GAME_DATA[roomKey].selectedGameInfo,
@@ -126,53 +140,61 @@ io.on(`connection`, (socket) => {
   });
 
   //* PLAYER SET READY (DONE)
-  socket.on("update-ready", (username, roomName, ready, cb) => {
+  socket.on("update-ready", ({ username, userId }, roomName, ready, cb) => {
     const roomKey = getRoomKey(io, roomName);
     if (GAME_DATA[roomKey]) {
       const { playerStatus } = GAME_DATA[roomKey];
+      if (!userValidation(playerStatus, username, userId))
+        return cb({ status: false, msg: "No Authorisation" });
+
       const playerIndex = getPlayerIndex(playerStatus, username);
       playerStatus[playerIndex].readyState = ready;
-      io.in(roomName).emit("update-player-status", playerStatus);
+      const data = removePlayerId(playerStatus);
+      io.in(roomName).emit("update-player-status", data);
     } else cb({ status: false, msg: "Invalid Room" });
   });
 
   //* PLAYER SET BUYIN (DONE)
-  socket.on("lobby-buyin", ({ username }, { roomName }, buyinValue, cb) => {
-    const roomKey = getRoomKey(io, roomName);
-    const { playerStatus } = GAME_DATA[roomKey];
-    //* CHECK ROOM IS VALID
-    if (!roomKey)
-      return cb({ status: false, msg: "Invalid Input", redirect: true });
-    //* CHECK INPUT IS VALID
-    if (!+buyinValue) return cb({ status: false, msg: "Invalid Input" });
-    //* CHECK USERNAME IS VALID
-    if (!validPlayer(playerStatus, username))
-      return cb({ status: false, msg: "Invalid User" });
+  socket.on(
+    "lobby-buyin",
+    ({ username, userId }, { roomName }, buyinValue, cb) => {
+      const roomKey = getRoomKey(io, roomName);
+      const { playerStatus } = GAME_DATA[roomKey];
+      //* CHECK ROOM IS VALID
+      if (!roomKey)
+        return cb({ status: false, msg: "Invalid Input", redirect: true });
+      //* CHECK INPUT IS VALID
+      else if (!+buyinValue) return cb({ status: false, msg: "Invalid Input" });
+      //* CHECK USERNAME IS VALID
+      else if (!userValidation(playerStatus, username, userId))
+        return cb({ status: false, msg: "No Authorisation" });
 
-    //* SET BUYIN TO USERINFO
-    const playerIndex = getPlayerIndex(playerStatus, username);
-    playerStatus[playerIndex] = {
-      ...playerStatus[playerIndex],
-      buyin: buyinValue,
-    };
-    io.in(roomName).emit("update-lobby-buyin", playerStatus);
-  });
+      //* SET BUYIN TO USERINFO
+      const playerIndex = getPlayerIndex(playerStatus, username);
+      playerStatus[playerIndex] = {
+        ...playerStatus[playerIndex],
+        buyin: buyinValue,
+      };
+      const data = removePlayerId(playerStatus);
+      io.in(roomName).emit("update-lobby-buyin", data);
+    }
+  );
 
   //* HOST INITIALISE GAME START (DONE)
-  socket.on("initialise-game", ({ username }, roomName, cb) => {
+  socket.on("initialise-game", ({ username, userId }, roomName, cb) => {
     const roomKey = getRoomKey(io, roomName);
     const roomInfo = GAME_DATA[roomKey];
     if (!roomInfo.selectedGameInfo)
       return cb({ status: false, msg: "Require Game Setting Input" });
     else if (!roomInfo.selectedGameInfo.selectedGame)
       return cb({ status: false, msg: "Please Select Game" });
+    else if (!isHost(roomInfo, userId))
+      return cb({ status: false, msg: "No Authorisation" });
     //* CHECK ALL USER BUYIN
-    const { host, selectedGameInfo, playerStatus } = roomInfo;
-
-    //* Check all players has bought in ("stack")
+    const { selectedGameInfo, playerStatus } = roomInfo;
 
     //* validate incoming data & all player ready
-    if (username === host && allPlayerReady(playerStatus)) {
+    if (allPlayerReady(playerStatus)) {
       const { selectedGame } = selectedGameInfo;
       switch (selectedGame) {
         case "inBetween":
@@ -194,11 +216,11 @@ io.on(`connection`, (socket) => {
 
           GAME_DATA[roomKey].gameState.issueTwoCards();
           const { issuedCards, turn, pot } = GAME_DATA[roomKey].gameState;
-
+          const data = removePlayerId(playerStatus);
           io.in(roomName).emit("start-inbetween", roomName, {
             issuedCards,
             turn,
-            playerStatus,
+            playerStatus: data,
             stake,
             minBuyin,
             pot,
@@ -216,18 +238,35 @@ io.on(`connection`, (socket) => {
   //! TOPUP-REQUEST (NOT DONE)
   socket.on(
     "topup-request",
-    ({ username, userId }, { hostId }, topUpValue, cb) => {
-      //* send request to host, require host socket id
-      socket.to(hostId).emit("topup-request-host", { username, topUpValue });
+    ({ username, userId }, { roomName }, topUpValue, cb) => {
+      const roomKey = getRoomKey(io, roomName);
+      const { playerStatus, host } = GAME_DATA[roomKey];
+      //* USER VALIDATION
+      if (!userValidation(playerStatus, username, userId))
+        return cb({ status: false, msg: "No Authorisation" });
+      //* Amount pending
+
+      //* SEND REQUEST TO HOST
+      socket
+        .to(host.hostId)
+        .emit("topup-request-host", { username, topUpValue });
     }
   );
   //! TOPUP-CONFRIM (NOT DONE)
   socket.on(
     "topup-confirm",
-    ({ username, userId }, { roomName }, topUpValue, cb) => {
-      //* Update GAME_DATA
+    ({ userId }, { roomName }, { requestUser, topUpValue }, cb) => {
+      //* Validate is host
+      const roomKey = getRoomKey(io, roomName);
+      const { playerStatus, host } = GAME_DATA[roomKey];
+      if (!isHost(GAME_DATA[roomKey], userId))
+        return cb({ status: false, msg: "No Authorisation" });
+
       //* Pass playerStatus
-      io.of("roomId").emit("update-stack", "");
+      const targetIndex = getPlayerIndex(playerStatus, requestUser);
+      GAME_DATA[roomKey].gameState.playerStatus[targetIndex].topup(topUpValue);
+      const data = removePlayerId(playerStatus);
+      io.in(roomName).emit("update-stack", data);
     }
   );
   //? HIT (VALIDATE PLAYER & TURN => HIT & UPDATE)
