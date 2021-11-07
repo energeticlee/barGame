@@ -158,7 +158,7 @@ io.on(`connection`, (socket) => {
     io.in(roomName).emit("update-lobby-buyin", playerStatus);
   });
 
-  //! HOST INITIALISE GAME START (NOT DONE)
+  //* HOST INITIALISE GAME START (DONE)
   socket.on("initialise-game", ({ username }, roomName, cb) => {
     const roomKey = getRoomKey(io, roomName);
     const roomInfo = GAME_DATA[roomKey];
@@ -191,9 +191,17 @@ io.on(`connection`, (socket) => {
             ...GAME_DATA[roomKey],
             gameState: new InBetween(playerStatus, selectedGameInfo),
           };
-          //! RETURN BACK SELECTED DATA
+
+          GAME_DATA[roomKey].gameState.issueTwoCards();
+          const { issuedCards, turn, pot } = GAME_DATA[roomKey].gameState;
+
           io.in(roomName).emit("start-inbetween", roomName, {
-            gameState: GAME_DATA[roomKey].gameState,
+            issuedCards,
+            turn,
+            playerStatus,
+            stake,
+            minBuyin,
+            pot,
           });
           break;
 
@@ -203,6 +211,28 @@ io.on(`connection`, (socket) => {
     }
     return cb({ status: false, msg: "Invalid Request" });
   });
+
+  //! Require userId and HostId
+  //! TOPUP-REQUEST (NOT DONE)
+  socket.on(
+    "topup-request",
+    ({ username, userId }, { hostId }, topUpValue, cb) => {
+      //* send request to host, require host socket id
+      socket.to(hostId).emit("topup-request-host", { username, topUpValue });
+    }
+  );
+  //! TOPUP-CONFRIM (NOT DONE)
+  socket.on(
+    "topup-confirm",
+    ({ username, userId }, { roomName }, topUpValue, cb) => {
+      //* Update GAME_DATA
+      //* Pass playerStatus
+      io.of("roomId").emit("update-stack", "");
+    }
+  );
+  //? HIT (VALIDATE PLAYER & TURN => HIT & UPDATE)
+  //? PASS (VALIDATE PLAYER & TURN => HIT & UPDATE)
+  //? LEAVE-GAME => CASHOUT
 
   //? kill all on disconnect? (NOT DONE)
   socket.on(`disconnect`, () => {
