@@ -12,11 +12,12 @@ const {
   isHost,
   getRoomKey,
   allPlayerReady,
-  validPlayer,
+  isTurn,
   removePlayerRequest,
   userValidation,
   getPlayerIndex,
   allBoughtIn,
+  getInBetweenState,
 } = require("./GameLogic/helper");
 
 const PORT = 5050;
@@ -191,7 +192,9 @@ io.on(`connection`, (socket) => {
 
           GAME_DATA[roomKey].gameState.issueTwoCards();
           const { issuedCards, turn, pot } = GAME_DATA[roomKey].gameState;
-          const data = removePlayerId(playerStatus);
+          const data = removePlayerId(
+            GAME_DATA[roomKey].gameState.playerStatus
+          );
           io.in(roomName).emit("start-inbetween", roomName, {
             issuedCards,
             turn,
@@ -285,7 +288,36 @@ io.on(`connection`, (socket) => {
   );
 
   //! ANTE PUT (NOT DONE)
-  //! HIT (NOT DONE)
+  //* HIT (DONE)
+  socket.on("hit", (user, { roomName }, bet, cb) => {
+    const roomKey = getRoomKey(io, roomName);
+    const {
+      playerStatus,
+      gameState: { turn },
+    } = GAME_DATA[roomKey];
+    //* Validate Action
+    if (!isTurn(GAME_DATA[roomKey].gameState, user.username))
+      return cb({ status: false, msg: "Please Wait For Your Turn" });
+
+    //* Check if bet is within pot size
+    //* Check if bet is half of stack
+
+    const middleCard = GAME_DATA[roomKey].gameState.attemptBetween();
+    const outcome = GAME_DATA[roomKey].gameState.outcome();
+    //* Player win, transfer bet size from pot to player stack
+    if (outcome) {
+      GAME_DATA[roomKey].gameState.pot -= bet;
+      GAME_DATA[roomKey].gameState.playerStatus[turn].stack += bet;
+    } else {
+      GAME_DATA[roomKey].gameState.pot += bet;
+      GAME_DATA[roomKey].gameState.playerStatus[turn].stack -= bet;
+    }
+
+    //* Pass Players InBetween Data (username, stack)
+    const data = getInBetweenState(GAME_DATA[roomKey].gameState);
+    io.in(roomName).emit("hit-outcome", data, middleCard);
+  });
+
   //! PASS (NOT DONE)
   //! IN GAME BUY IN (NOT DONE)
   //! LEAVE-GAME => CASHOUT (NOT DONE)

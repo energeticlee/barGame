@@ -135,6 +135,7 @@ export const useStore = (intial: IReducerState) => {
   };
 
   const [isHost, setIsHost] = useState<boolean | null>();
+  const [middleCard, setMiddleCard] = useState<number | null>();
 
   const updateHost = (hostStatus: boolean) => setIsHost(hostStatus);
 
@@ -150,6 +151,8 @@ export const useStore = (intial: IReducerState) => {
     updateHost,
     useDisReq,
     isHost,
+    middleCard,
+    setMiddleCard,
   };
 };
 

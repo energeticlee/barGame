@@ -1,14 +1,13 @@
 class Player {
-  constructor({ username, buyin }) {
+  constructor({ username, buyin, userId }) {
     this.playerName = username;
-    this.stack = buyin;
-    this.winnings = 0;
+    this.stack = parseInt(buyin);
+    this.userId = userId;
   }
 
   cashOut = () => {
-    const balance = this.stack + this.winnings;
+    const balance = this.stack;
     this.stack = 0;
-    this.winnings = 0;
     return balance;
   };
 
@@ -89,6 +88,11 @@ class InBetween {
   //* New player join mid-game
   newPlayer = (playerName, stack) => {
     this.player.push(new Player(playerName, stack));
+  };
+
+  passTurn = () => {
+    if (this.playerStatus.length - 1 === this.turn) this.turn = 0;
+    else this.turn++;
   };
 }
 

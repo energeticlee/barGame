@@ -3,13 +3,15 @@ import { Container, Box, Typography, Button } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { UseStateContext } from "../../store";
 import { AccountBalanceWallet } from "@mui/icons-material";
+import BetDialog from "../../Components/BetDialog";
 import TopupDialog from "../../Components/TopupDialog";
 import { ICallBack } from "../../Helper/Interface";
 
 const InBetween = () => {
   const [openDialog, setOpenDialog] = useState(false);
+  const [betDialog, setBetDialog] = useState(false);
   // const { roomName } = useParams<{ roomName?: string }>();
-  const { state, useDisMessage } = UseStateContext();
+  const { state, useDisMessage, middleCard } = UseStateContext();
   const { socket, userData, roomInfo } = state!;
   const { issuedCards, turn, playerStatus, pot, stake, minBuyin } =
     state.gameState!;
@@ -31,20 +33,17 @@ const InBetween = () => {
   //* Display other stack
 
   //* Game Setup
+  console.log("playerStatus", playerStatus);
   const filteredUser = playerStatus.filter(
-    (user) => user.username === userData?.username
+    (user) => user.playerName === userData?.username
   );
+  console.log("filteredUser", filteredUser);
 
   //* Check if turn, else disable button
-  const isTurn = playerStatus[turn].username === userData?.username;
-
-  const handleHit = () => {
-    socket.emit("hit", userData, roomInfo, (res: ICallBack) => {
-      if (!res.status) useDisMessage(res.msg);
-    });
-  };
+  const isTurn = playerStatus[turn].playerName === userData?.username;
 
   const handlePass = () => {
+    //* Trigger Pass
     socket.emit("pass", userData, roomInfo, (res: ICallBack) => {
       if (!res.status) useDisMessage(res.msg);
     });
@@ -62,6 +61,7 @@ const InBetween = () => {
         }}
       >
         <TopupDialog setOpenDialog={setOpenDialog} openDialog={openDialog} />
+        <BetDialog setBetDialog={setBetDialog} betDialog={betDialog} />
         <Box
           sx={{
             justifyContent: "center",
@@ -94,7 +94,7 @@ const InBetween = () => {
               variant="h6"
               sx={{ color: "green", ml: 1 }}
             >
-              {playerStatus[turn].username}
+              {playerStatus[turn].playerName}
             </Typography>
           </Box>
         </Box>
@@ -103,10 +103,19 @@ const InBetween = () => {
           sx={{
             display: "flex",
             justifyContent: "space-between",
-            fontSize: "120px",
+            alignItems: "center",
+            fontSize: "100px",
           }}
         >
           <Box>{issuedCards[0]}</Box>
+          <Box
+            sx={{
+              fontSize: "60px",
+              color: "green",
+            }}
+          >
+            {middleCard ? middleCard : "?"}
+          </Box>
           <Box>{issuedCards[1]}</Box>
         </Container>
         <Container
@@ -121,18 +130,18 @@ const InBetween = () => {
             variant="contained"
             color="error"
             disabled={!isTurn}
-            onClick={handleHit}
+            onClick={handlePass}
           >
             PASS
           </Button>
           <Typography component="h1" variant="h6">
-            Stack: {`$${filteredUser[0].buyin}`}
+            Stack: {`$${filteredUser[0].stack}`}
           </Typography>
           <Button
             variant="contained"
             color="success"
             disabled={!isTurn}
-            onClick={handlePass}
+            onClick={() => setBetDialog(true)}
           >
             HIT
           </Button>

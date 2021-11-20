@@ -27,8 +27,9 @@ export const useWaitRoomSocket = (
     useDisInBetweenState,
     updateHost,
     useDisReq,
+    setMiddleCard,
   } = UseStateContext();
-  const { socket } = state;
+  const { socket, userData, roomInfo } = state;
   const histroy = useHistory();
 
   useEffect(() => {
@@ -69,6 +70,20 @@ export const useWaitRoomSocket = (
       useDisInBetweenState(gameState);
       histroy.push(`/room/inbetween/${roomName}`);
     });
+
+    socket.on(
+      "hit-outcome",
+      (gameState: InBetweenState, middleCard: number) => {
+        useDisInBetweenState(gameState);
+        setMiddleCard(middleCard);
+        setTimeout(() => {
+          //* setTimeout to trigger turn change (pass)
+          socket.emit("pass", userData, roomInfo, (res: ICallBack) => {
+            if (!res.status) useDisMessage(res.msg);
+          });
+        }, 3000);
+      }
+    );
 
     socket.on("topup-request-host", (data: IRequest[]) => useDisReq(data));
 

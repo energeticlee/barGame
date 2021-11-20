@@ -20,6 +20,9 @@ const removePlayerRequest = (pending, username) =>
 
 const isHost = (gdata, id) => gdata.host.hostId === id;
 
+const isTurn = ({ playerStatus, turn }, username) =>
+  playerStatus[turn].playerName === username;
+
 const userValidation = (playerStatus, username, id) => {
   const targetUser = playerStatus.find((user) => user.username === username);
   return targetUser?.userId === id;
@@ -42,6 +45,15 @@ const allBoughtIn = (playerStatus) =>
 const getPlayerIndex = (playerStatus, username) =>
   playerStatus.findIndex((p) => p.username === username);
 
+const getInBetweenState = (gameState) => {
+  const { issuedCards, turn, playerStatus, stake, minBuyin, pot } = gameState;
+  const playerData = playerStatus.map(({ playerName, stack }) => {
+    return { playerName, stack };
+  });
+
+  return { issuedCards, turn, playerStatus: playerData, stake, minBuyin, pot };
+};
+
 module.exports = {
   getRoomName,
   getRoomKey,
@@ -53,4 +65,6 @@ module.exports = {
   getPlayerIndex,
   allBoughtIn,
   removePlayerRequest,
+  isTurn,
+  getInBetweenState,
 };
