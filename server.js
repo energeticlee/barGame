@@ -155,34 +155,6 @@ io.on(`connection`, (socket) => {
     } else cb({ status: false, msg: "Invalid Room" });
   });
 
-  //* PLAYER SET BUYIN (DONE)
-  //! Add topup-confirm as middleware
-  //! Change this to topup-confirm, expect { userId }, roomName, { requestUser, topUpValue }, cb
-  // socket.on(
-  //   "lobby-buyin",
-  //   ({ username, userId }, { roomName }, buyinValue, cb) => {
-  //     const roomKey = getRoomKey(io, roomName);
-  //     const { playerStatus } = GAME_DATA[roomKey];
-  //     //* CHECK ROOM IS VALID
-  //     if (!roomKey)
-  //       return cb({ status: false, msg: "Invalid Input", redirect: true });
-  //     //* CHECK INPUT IS VALID
-  //     else if (!+buyinValue) return cb({ status: false, msg: "Invalid Input" });
-  //     //* CHECK USERNAME IS VALID
-  //     else if (!userValidation(playerStatus, username, userId))
-  //       return cb({ status: false, msg: "No Authorisation" });
-
-  //     //* SET BUYIN TO USERINFO
-  //     const playerIndex = getPlayerIndex(playerStatus, username);
-  //     playerStatus[playerIndex] = {
-  //       ...playerStatus[playerIndex],
-  //       buyin: buyinValue,
-  //     };
-  //     const data = removePlayerId(playerStatus);
-  //     io.in(roomName).emit("update-lobby-buyin", data);
-  //   }
-  // );
-
   //* HOST INITIALISE GAME START (DONE)
   socket.on("initialise-game", ({ username, userId }, roomName, cb) => {
     const roomKey = getRoomKey(io, roomName);
@@ -238,7 +210,6 @@ io.on(`connection`, (socket) => {
   });
 
   //* TOPUP-REQUEST (DONE)
-  //! HANDLE HOST BUYIN
   socket.on(
     "topup-request",
     ({ username, userId }, { roomName }, topUpValue, cb) => {
@@ -272,7 +243,7 @@ io.on(`connection`, (socket) => {
     }
   );
 
-  //* TOPUP-CONFRIM (DONE)
+  //* TOPUP-CONFIRM (DONE)
   socket.on(
     "topup-confirm",
     ({ userId }, { roomName }, { reqUsername, pending }, cb) => {
@@ -293,7 +264,7 @@ io.on(`connection`, (socket) => {
       io.in(roomName).emit("update-stack", data, GAME_DATA[roomKey].pending);
     }
   );
-  //! CATCH TOPUP-REJECT (NOT DONE)
+  //* TOPUP-REJECT (DONE)
   socket.on(
     "topup-reject",
     ({ userId }, { roomName }, { reqUsername, pending }, cb) => {
@@ -313,19 +284,16 @@ io.on(`connection`, (socket) => {
     }
   );
 
+  //! ANTE PUT (NOT DONE)
   //! HIT (NOT DONE)
   //! PASS (NOT DONE)
+  //! IN GAME BUY IN (NOT DONE)
   //! LEAVE-GAME => CASHOUT (NOT DONE)
 
   //! HANDLE DISCONNECTED USER (NOT DONE)
   //! kill all on disconnect? (NOT DONE)
   socket.on(`disconnect`, () => {
-    socket.broadcast.emit(`callEnded`);
-  });
-
-  //* (NOT DONE)
-  socket.on(`answerCall`, (data) => {
-    io.to(data.to).emit(`callAccepted`, data.signal);
+    socket.broadcast.emit(`gameEnded`);
   });
 });
 

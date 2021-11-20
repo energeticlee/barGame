@@ -56,7 +56,7 @@ export interface IGameInfo {
 
 interface InBetweenPlayer {
   username: string;
-  stack: number;
+  buyin: number;
   winnings: number;
   // cashOut: () => number;
 }

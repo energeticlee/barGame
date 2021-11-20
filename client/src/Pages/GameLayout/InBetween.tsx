@@ -4,21 +4,52 @@ import { useParams } from "react-router-dom";
 import { UseStateContext } from "../../store";
 import { AccountBalanceWallet } from "@mui/icons-material";
 import TopupDialog from "../../Components/TopupDialog";
+import { ICallBack } from "../../Helper/Interface";
 
 const InBetween = () => {
   const [openDialog, setOpenDialog] = useState(false);
   // const { roomName } = useParams<{ roomName?: string }>();
-  const { state } = UseStateContext();
-  const { userData } = state;
+  const { state, useDisMessage } = UseStateContext();
+  const { socket, userData, roomInfo } = state!;
   const { issuedCards, turn, playerStatus, pot, stake, minBuyin } =
     state.gameState!;
-  console.log("sstate", issuedCards, turn, playerStatus, pot, stake, minBuyin);
+  console.log(
+    "sstate",
+    issuedCards,
+    turn,
+    playerStatus,
+    userData,
+    pot,
+    stake,
+    minBuyin
+  );
   // {playerName, stack, winnings} = playerStatus[]
   //* If player turn, show option, else display waiting...
   //* Show player status on modal
   //* show stake and minBuyin in setting
+  //* Show own stack
+  //* Display other stack
 
   //* Game Setup
+  const filteredUser = playerStatus.filter(
+    (user) => user.username === userData?.username
+  );
+
+  //* Check if turn, else disable button
+  const isTurn = playerStatus[turn].username === userData?.username;
+
+  const handleHit = () => {
+    socket.emit("hit", userData, roomInfo, (res: ICallBack) => {
+      if (!res.status) useDisMessage(res.msg);
+    });
+  };
+
+  const handlePass = () => {
+    socket.emit("pass", userData, roomInfo, (res: ICallBack) => {
+      if (!res.status) useDisMessage(res.msg);
+    });
+  };
+
   return (
     <Container sx={{ height: "100vh" }}>
       <Container
@@ -31,10 +62,29 @@ const InBetween = () => {
         }}
       >
         <TopupDialog setOpenDialog={setOpenDialog} openDialog={openDialog} />
-        <Box>
-          <Typography component="h1" variant="h6">
-            {`Current Pot: $${pot}`}
-          </Typography>
+        <Box
+          sx={{
+            justifyContent: "center",
+            alignItems: "center",
+            mt: 2,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              mb: 1,
+            }}
+          >
+            <Typography component="h1" variant="h6">
+              {`Current Pot: $${pot}`}
+            </Typography>
+            <AccountBalanceWallet
+              sx={{ cursor: "pointer", transform: "scale(2)", ml: 3 }}
+              onClick={() => setOpenDialog(true)}
+            />
+          </Box>
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             <Typography component="h1" variant="h6">
               Action on:
@@ -48,10 +98,12 @@ const InBetween = () => {
             </Typography>
           </Box>
         </Box>
+
         <Container
           sx={{
             display: "flex",
             justifyContent: "space-between",
+            fontSize: "120px",
           }}
         >
           <Box>{issuedCards[0]}</Box>
@@ -65,14 +117,23 @@ const InBetween = () => {
             mb: 2,
           }}
         >
-          <Button variant="contained" color="error">
+          <Button
+            variant="contained"
+            color="error"
+            disabled={!isTurn}
+            onClick={handleHit}
+          >
             PASS
           </Button>
-          <AccountBalanceWallet
-            sx={{ cursor: "pointer" }}
-            onClick={() => setOpenDialog(true)}
-          />
-          <Button variant="contained" color="success">
+          <Typography component="h1" variant="h6">
+            Stack: {`$${filteredUser[0].buyin}`}
+          </Typography>
+          <Button
+            variant="contained"
+            color="success"
+            disabled={!isTurn}
+            onClick={handlePass}
+          >
             HIT
           </Button>
         </Container>
