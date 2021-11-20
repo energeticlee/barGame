@@ -85,6 +85,11 @@ export const useWaitRoomSocket = (
       }
     );
 
+    socket.on("next-player", (gameState: InBetweenState) => {
+      useDisInBetweenState(gameState);
+      setMiddleCard(null);
+    });
+
     socket.on("topup-request-host", (data: IRequest[]) => useDisReq(data));
 
     socket.emit("is-host", { roomName, userId }, (res: ICallBack) => {

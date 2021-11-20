@@ -289,14 +289,13 @@ io.on(`connection`, (socket) => {
 
   //! ANTE PUT (NOT DONE)
   //* HIT (DONE)
-  socket.on("hit", (user, { roomName }, bet, cb) => {
+  socket.on("hit", ({ username }, { roomName }, bet, cb) => {
     const roomKey = getRoomKey(io, roomName);
     const {
-      playerStatus,
       gameState: { turn },
     } = GAME_DATA[roomKey];
     //* Validate Action
-    if (!isTurn(GAME_DATA[roomKey].gameState, user.username))
+    if (!isTurn(GAME_DATA[roomKey].gameState, username))
       return cb({ status: false, msg: "Please Wait For Your Turn" });
 
     //* Check if bet is within pot size
@@ -313,12 +312,26 @@ io.on(`connection`, (socket) => {
       GAME_DATA[roomKey].gameState.playerStatus[turn].stack -= bet;
     }
 
-    //* Pass Players InBetween Data (username, stack)
     const data = getInBetweenState(GAME_DATA[roomKey].gameState);
     io.in(roomName).emit("hit-outcome", data, middleCard);
   });
 
-  //! PASS (NOT DONE)
+  //* PASS (DONE)
+  socket.on("pass", ({ username }, { roomName }, cb) => {
+    const roomKey = getRoomKey(io, roomName);
+    const {
+      gameState: { turn },
+    } = GAME_DATA[roomKey];
+    //* Validate Action
+    if (!isTurn(GAME_DATA[roomKey].gameState, username))
+      return cb({ status: false, msg: "Please Wait For Your Turn" });
+
+    GAME_DATA[roomKey].gameState.passTurn();
+    GAME_DATA[roomKey].gameState.issueTwoCards();
+
+    const data = getInBetweenState(GAME_DATA[roomKey].gameState);
+    io.in(roomName).emit("next-player", data);
+  });
   //! IN GAME BUY IN (NOT DONE)
   //! LEAVE-GAME => CASHOUT (NOT DONE)
 

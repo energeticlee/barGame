@@ -41,6 +41,7 @@ class InBetween {
 
   issueTwoCards = () => {
     if (this.currentDeck.length > 10) this.currentDeck = this.newDeck();
+    this.middleCard = "";
     //* display 2 option with currentDeck
     const cardOne = this.drawACard();
     const cardTwo = this.drawACard();
