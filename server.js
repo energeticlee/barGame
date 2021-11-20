@@ -13,6 +13,7 @@ const {
   getRoomKey,
   allPlayerReady,
   validPlayer,
+  removePlayerRequest,
   userValidation,
   getPlayerIndex,
   allBoughtIn,
@@ -156,30 +157,31 @@ io.on(`connection`, (socket) => {
 
   //* PLAYER SET BUYIN (DONE)
   //! Add topup-confirm as middleware
-  socket.on(
-    "lobby-buyin",
-    ({ username, userId }, { roomName }, buyinValue, cb) => {
-      const roomKey = getRoomKey(io, roomName);
-      const { playerStatus } = GAME_DATA[roomKey];
-      //* CHECK ROOM IS VALID
-      if (!roomKey)
-        return cb({ status: false, msg: "Invalid Input", redirect: true });
-      //* CHECK INPUT IS VALID
-      else if (!+buyinValue) return cb({ status: false, msg: "Invalid Input" });
-      //* CHECK USERNAME IS VALID
-      else if (!userValidation(playerStatus, username, userId))
-        return cb({ status: false, msg: "No Authorisation" });
+  //! Change this to topup-confirm, expect { userId }, roomName, { requestUser, topUpValue }, cb
+  // socket.on(
+  //   "lobby-buyin",
+  //   ({ username, userId }, { roomName }, buyinValue, cb) => {
+  //     const roomKey = getRoomKey(io, roomName);
+  //     const { playerStatus } = GAME_DATA[roomKey];
+  //     //* CHECK ROOM IS VALID
+  //     if (!roomKey)
+  //       return cb({ status: false, msg: "Invalid Input", redirect: true });
+  //     //* CHECK INPUT IS VALID
+  //     else if (!+buyinValue) return cb({ status: false, msg: "Invalid Input" });
+  //     //* CHECK USERNAME IS VALID
+  //     else if (!userValidation(playerStatus, username, userId))
+  //       return cb({ status: false, msg: "No Authorisation" });
 
-      //* SET BUYIN TO USERINFO
-      const playerIndex = getPlayerIndex(playerStatus, username);
-      playerStatus[playerIndex] = {
-        ...playerStatus[playerIndex],
-        buyin: buyinValue,
-      };
-      const data = removePlayerId(playerStatus);
-      io.in(roomName).emit("update-lobby-buyin", data);
-    }
-  );
+  //     //* SET BUYIN TO USERINFO
+  //     const playerIndex = getPlayerIndex(playerStatus, username);
+  //     playerStatus[playerIndex] = {
+  //       ...playerStatus[playerIndex],
+  //       buyin: buyinValue,
+  //     };
+  //     const data = removePlayerId(playerStatus);
+  //     io.in(roomName).emit("update-lobby-buyin", data);
+  //   }
+  // );
 
   //* HOST INITIALISE GAME START (DONE)
   socket.on("initialise-game", ({ username, userId }, roomName, cb) => {
@@ -235,42 +237,82 @@ io.on(`connection`, (socket) => {
     return cb({ status: false, msg: "Invalid Request" });
   });
 
-  //! Require userId and HostId
-  //! TOPUP-REQUEST (NOT DONE)
+  //* TOPUP-REQUEST (DONE)
+  //! HANDLE HOST BUYIN
   socket.on(
     "topup-request",
     ({ username, userId }, { roomName }, topUpValue, cb) => {
       const roomKey = getRoomKey(io, roomName);
       const { playerStatus, host } = GAME_DATA[roomKey];
+
+      //* Check is request is from host
+      if (GAME_DATA[roomKey].host.hostId === userId) {
+        const targetIndex = getPlayerIndex(playerStatus, username);
+        GAME_DATA[roomKey].playerStatus[targetIndex].buyin = topUpValue;
+        const data = removePlayerId(playerStatus);
+        io.in(roomName).emit("update-stack", data, GAME_DATA[roomKey].pending);
+        return;
+      }
       //* USER VALIDATION
       if (!userValidation(playerStatus, username, userId))
         return cb({ status: false, msg: "No Authorisation" });
       //* Amount pending
 
-      //* SEND REQUEST TO HOST
+      GAME_DATA[roomKey].pending = GAME_DATA[roomKey].pending
+        ? [
+            ...GAME_DATA[roomKey].pending,
+            { reqUsername: username, pending: topUpValue },
+          ]
+        : [{ reqUsername: username, pending: topUpValue }];
+
+      //* SEND ARRAY OF REQUEST TO HOST
       socket
         .to(host.hostId)
-        .emit("topup-request-host", { username, topUpValue });
+        .emit("topup-request-host", GAME_DATA[roomKey].pending);
     }
   );
-  //! TOPUP-CONFRIM (NOT DONE)
+
+  //* TOPUP-CONFRIM (DONE)
   socket.on(
     "topup-confirm",
-    ({ userId }, roomName, { requestUser, topUpValue }, cb) => {
+    ({ userId }, { roomName }, { reqUsername, pending }, cb) => {
       //* Validate is host
       const roomKey = getRoomKey(io, roomName);
-      const { playerStatus, host } = GAME_DATA[roomKey];
+      const { playerStatus } = GAME_DATA[roomKey];
       if (!isHost(GAME_DATA[roomKey], userId))
         return cb({ status: false, msg: "No Authorisation" });
 
+      GAME_DATA[roomKey].pending = removePlayerRequest(
+        GAME_DATA[roomKey].pending,
+        reqUsername
+      );
       //* Pass playerStatus
-      const targetIndex = getPlayerIndex(playerStatus, requestUser);
-      GAME_DATA[roomKey].gameState.playerStatus[targetIndex].topup(topUpValue);
+      const targetIndex = getPlayerIndex(playerStatus, reqUsername);
+      GAME_DATA[roomKey].playerStatus[targetIndex].buyin = pending;
       const data = removePlayerId(playerStatus);
-      io.in(roomName).emit("update-stack", data);
+      io.in(roomName).emit("update-stack", data, GAME_DATA[roomKey].pending);
     }
   );
   //! CATCH TOPUP-REJECT (NOT DONE)
+  socket.on(
+    "topup-reject",
+    ({ userId }, { roomName }, { reqUsername, pending }, cb) => {
+      //* Validate is host
+      const roomKey = getRoomKey(io, roomName);
+      const { playerStatus } = GAME_DATA[roomKey];
+      if (!isHost(GAME_DATA[roomKey], userId))
+        return cb({ status: false, msg: "No Authorisation" });
+
+      GAME_DATA[roomKey].pending = removePlayerRequest(
+        GAME_DATA[roomKey].pending,
+        reqUsername
+      );
+      //* Pass playerStatus
+      const data = removePlayerId(playerStatus);
+      io.in(roomName).emit("update-stack", data, GAME_DATA[roomKey].pending);
+    }
+  );
+
   //! HIT (NOT DONE)
   //! PASS (NOT DONE)
   //! LEAVE-GAME => CASHOUT (NOT DONE)

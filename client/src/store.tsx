@@ -46,14 +46,13 @@ interface IAction {
   type: Actions;
   payload:
     | string
-    | number
     | IAvailableGame[]
     | IUserInfo
     | IUserInfo[]
     | IRoomInfo
     | IGameInfo
     | InBetweenState
-    | IRequest;
+    | IRequest[];
 }
 
 const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
@@ -92,9 +91,7 @@ const reducerFunc = (state: IReducerState, action: IAction): IReducerState => {
     case Actions.setReq:
       return {
         ...state,
-        request: state.request
-          ? [...state.request, payload as IRequest]
-          : [payload as IRequest],
+        request: payload as IRequest[],
       };
 
     case Actions.setMessage:
@@ -129,7 +126,7 @@ export const useStore = (intial: IReducerState) => {
   const useDisInBetweenState = (payload: InBetweenState) =>
     dispatch({ type: Actions.setGameState, payload });
 
-  const useDisReq = (payload: IRequest) =>
+  const useDisReq = (payload: IRequest[]) =>
     dispatch({ type: Actions.setReq, payload });
 
   const useDisMessage = (payload: string) => {

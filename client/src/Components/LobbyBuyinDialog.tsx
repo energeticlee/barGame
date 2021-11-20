@@ -18,9 +18,11 @@ const LobbyBuyinDialog: FC<IProp> = ({ setOpenDialog, openDialog }) => {
   const { state, useDisMessage } = UseStateContext();
   const { socket, userData, roomInfo } = state;
 
+  // Send request to host
+  // Listen how request confirmation
   const handleBuyin = () => {
     socket.emit(
-      "lobby-buyin",
+      "topup-request",
       userData,
       roomInfo,
       buyinValue,

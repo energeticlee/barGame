@@ -74,37 +74,32 @@ const ReqTable = () => {
         <TableHead>
           <TableRow>
             <StyledTableCell>Name</StyledTableCell>
-            <StyledTableCell>Amount</StyledTableCell>
-            <StyledTableCell align="right">
-              <AccountBalanceWallet
-                sx={{ cursor: "pointer" }}
-                onClick={() => setOpenDialog(true)}
-              />
-            </StyledTableCell>
+            <StyledTableCell>Request Amount</StyledTableCell>
+            <StyledTableCell />
           </TableRow>
         </TableHead>
         <TableBody>
           {request &&
-            request.map(({ reqUsername, amount }, i) => (
+            request.map(({ reqUsername, pending }, i) => (
               <StyledTableRow key={i}>
                 <StyledTableCell component="th" scope="row">
                   {reqUsername}
                 </StyledTableCell>
                 <StyledTableCell component="th" scope="row">
-                  {amount}
+                  {`$${pending}`}
                 </StyledTableCell>
                 <StyledTableCell align="right">
                   <Button
                     variant="outlined"
                     color="error"
-                    onClick={() => handleReject({ reqUsername, amount })}
+                    onClick={() => handleReject({ reqUsername, pending })}
                   >
                     Reject
                   </Button>
                   <Button
                     variant="outlined"
                     color="success"
-                    onClick={() => handleConfirm({ reqUsername, amount })}
+                    onClick={() => handleConfirm({ reqUsername, pending })}
                   >
                     Approve
                   </Button>

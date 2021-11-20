@@ -130,7 +130,7 @@ const WaitingRoom = () => {
             </Container>
           )}
           <WaitingTable playerStatus={playerStatus!} minBuyin={minBuyin} />
-          <ReqTable />
+          {isHost && <ReqTable />}
           {isHost && (
             <Button
               fullWidth

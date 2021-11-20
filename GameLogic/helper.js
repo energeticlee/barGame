@@ -13,6 +13,11 @@ const removePlayerId = (playerStatus) =>
     return rest;
   });
 
+const removePlayerRequest = (pending, username) =>
+  pending.filter((user) => {
+    user.reqUsername !== username;
+  });
+
 const isHost = (gdata, id) => gdata.host.hostId === id;
 
 const userValidation = (playerStatus, username, id) => {
@@ -47,4 +52,5 @@ module.exports = {
   validPlayer,
   getPlayerIndex,
   allBoughtIn,
+  removePlayerRequest,
 };

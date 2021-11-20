@@ -71,5 +71,5 @@ export interface InBetweenState {
 
 export interface IRequest {
   reqUsername: string;
-  amount: string;
+  pending: string;
 }

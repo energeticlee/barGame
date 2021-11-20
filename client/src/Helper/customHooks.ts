@@ -1,6 +1,12 @@
 import { useEffect } from "react";
 import { useHistory } from "react-router-dom";
-import { IUserInfo, ICallBack, IGameInfo, InBetweenState } from "./Interface";
+import {
+  IUserInfo,
+  ICallBack,
+  IGameInfo,
+  InBetweenState,
+  IRequest,
+} from "./Interface";
 import { UseStateContext } from "../store";
 
 //* DIRECTORY
@@ -48,6 +54,12 @@ export const useWaitRoomSocket = (
       useDisPlayerStatus(data)
     );
 
+    socket.on("update-stack", (data: IUserInfo[], pendingData: IRequest[]) => {
+      console.log(data);
+      useDisPlayerStatus(data);
+      useDisReq(pendingData);
+    });
+
     socket.emit("get-players", roomName, (res: ICallBack) => {
       if (res.status) useDisPlayerStatus(res.data);
       else useDisMessage(res.msg!);
@@ -58,13 +70,7 @@ export const useWaitRoomSocket = (
       histroy.push(`/room/inbetween/${roomName}`);
     });
 
-    socket.on(
-      "topup-request-host",
-      (reqUsername: string, topUpValue: string) => {
-        //* Dispatch request (reqUsername, topUpValue)
-        useDisReq({ reqUsername, amount: topUpValue });
-      }
-    );
+    socket.on("topup-request-host", (data: IRequest[]) => useDisReq(data));
 
     socket.emit("is-host", { roomName, userId }, (res: ICallBack) => {
       if (res.status) updateHost(res.isHost);
