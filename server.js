@@ -388,8 +388,18 @@ io.on(`connection`, (socket) => {
 
   //! HANDLE DISCONNECTED USER (NOT DONE)
   //! kill all on disconnect? (NOT DONE)
-  socket.on(`disconnect`, () => {
-    socket.broadcast.emit(`gameEnded`);
+  socket.on("disconnecting", function () {
+    var self = this;
+    var rooms = self.rooms;
+    console.log(rooms);
+    console.log("GAME_DATA", GAME_DATA);
+
+    //* If player disconnect, and game not started, remove from room
+    //* If player disconnect, trigger cashout
+    //* If no players in room, clear room
+    //* If host disconnect, stop game
+
+    // socket.broadcast.emit(`gameEnded`);
   });
 });
 
