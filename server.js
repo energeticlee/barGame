@@ -191,6 +191,7 @@ io.on(`connection`, (socket) => {
           };
 
           GAME_DATA[roomKey].gameState.issueTwoCards();
+          GAME_DATA[roomKey].gameState.anteUp();
           const { issuedCards, turn, pot } = GAME_DATA[roomKey].gameState;
           const data = removePlayerId(
             GAME_DATA[roomKey].gameState.playerStatus
@@ -313,7 +314,7 @@ io.on(`connection`, (socket) => {
     }
   );
 
-  //! ANTE PUT (NOT DONE)
+  //! ANTE PUT (INITIALISE AND HIT)
   //* HIT (DONE)
   socket.on("hit", ({ username }, { roomName }, bet, cb) => {
     const roomKey = getRoomKey(io, roomName);
@@ -337,6 +338,8 @@ io.on(`connection`, (socket) => {
       GAME_DATA[roomKey].gameState.pot += bet;
       GAME_DATA[roomKey].gameState.playerStatus[turn].stack -= bet;
     }
+
+    GAME_DATA[roomKey].gameState.anteUp();
 
     const data = getInBetweenState(GAME_DATA[roomKey].gameState);
     io.in(roomName).emit("hit-outcome", data, middleCard);

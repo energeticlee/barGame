@@ -28,10 +28,10 @@ class InBetween {
   //* Player tracker: turn, players [{ playerName, stack, winnings }]
 
   anteUp = () => {
-    if (this.pot <= 0) {
+    if (this.pot === 0) {
       this.playerStatus.map((player) => {
-        player.stack -= this.stake;
-        this.pot += this.stake;
+        player.stack -= +this.stake;
+        this.pot += +this.stake;
       });
     }
     //* all players chip in ante
