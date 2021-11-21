@@ -42,6 +42,11 @@ const allBoughtIn = (playerStatus) =>
   Object.values(playerStatus).filter((playerState) => !playerState.buyin)
     .length === 0;
 
+const allMinBuyin = (playerStatus, minBuyin) =>
+  Object.values(playerStatus).filter(
+    (playerState) => parseInt(playerState.buyin) < minBuyin
+  ).length === 0;
+
 const getPlayerIndex = (playerStatus, username) =>
   playerStatus.findIndex((p) => p.username === username);
 
@@ -67,4 +72,5 @@ module.exports = {
   removePlayerRequest,
   isTurn,
   getInBetweenState,
+  allMinBuyin,
 };

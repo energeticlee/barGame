@@ -57,10 +57,17 @@ class InBetween {
   };
 
   outcome = () => {
-    return (
+    if (
       this.middleCard > this.issuedCards[0] &&
       this.middleCard < this.issuedCards[1]
-    );
+    )
+      return "win";
+    else if (
+      this.middleCard < this.issuedCards[0] &&
+      this.middleCard > this.issuedCards[1]
+    )
+      return "lose";
+    else return "double";
   };
 
   drawACard = () => {

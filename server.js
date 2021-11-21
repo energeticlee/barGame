@@ -18,6 +18,7 @@ const {
   getPlayerIndex,
   allBoughtIn,
   getInBetweenState,
+  allMinBuyin,
 } = require("./GameLogic/helper");
 
 const PORT = 5050;
@@ -169,6 +170,8 @@ io.on(`connection`, (socket) => {
     //* CHECK ALL USER BUYIN
     const { selectedGameInfo, playerStatus } = roomInfo;
 
+    //* Check min buyin requirement met before initialisation
+
     //* validate incoming data & all player ready
     if (allPlayerReady(playerStatus)) {
       const { selectedGame } = selectedGameInfo;
@@ -180,10 +183,20 @@ io.on(`connection`, (socket) => {
               status: false,
               msg: "Require Both Stake & Min Buyin Input",
             });
+          if (stake > minBuyin)
+            return cb({
+              status: false,
+              msg: "Stake cannot be higher than min buyin",
+            });
           if (!allBoughtIn(playerStatus))
             return cb({
               status: false,
               msg: "Not all players are bought in",
+            });
+          if (allMinBuyin(playerStatus, minBuyin))
+            return cb({
+              status: false,
+              msg: "Min buyin requirement not met",
             });
           GAME_DATA[roomKey] = {
             ...GAME_DATA[roomKey],
@@ -314,7 +327,6 @@ io.on(`connection`, (socket) => {
     }
   );
 
-  //! ANTE PUT (INITIALISE AND HIT)
   //* HIT (DONE)
   socket.on("hit", ({ username }, { roomName }, bet, cb) => {
     const roomKey = getRoomKey(io, roomName);
@@ -326,17 +338,27 @@ io.on(`connection`, (socket) => {
       return cb({ status: false, msg: "Please Wait For Your Turn" });
 
     //* Check if bet is within pot size
+    if (GAME_DATA[roomKey].gameState.pot < bet)
+      return cb({ status: false, msg: "You can't bet more than the pot" });
     //* Check if bet is half of stack
+    if (GAME_DATA[roomKey].gameState.playerStatus[turn].stack < bet * 2)
+      return cb({
+        status: false,
+        msg: "You can only bet up to half your stack",
+      });
 
     const middleCard = GAME_DATA[roomKey].gameState.attemptBetween();
     const outcome = GAME_DATA[roomKey].gameState.outcome();
     //* Player win, transfer bet size from pot to player stack
-    if (outcome) {
+    if (outcome === "win") {
       GAME_DATA[roomKey].gameState.pot -= bet;
       GAME_DATA[roomKey].gameState.playerStatus[turn].stack += bet;
-    } else {
+    } else if (outcome === "lose") {
       GAME_DATA[roomKey].gameState.pot += bet;
       GAME_DATA[roomKey].gameState.playerStatus[turn].stack -= bet;
+    } else {
+      GAME_DATA[roomKey].gameState.pot += bet * 2;
+      GAME_DATA[roomKey].gameState.playerStatus[turn].stack -= bet * 2;
     }
 
     GAME_DATA[roomKey].gameState.anteUp();
@@ -361,7 +383,7 @@ io.on(`connection`, (socket) => {
     const data = getInBetweenState(GAME_DATA[roomKey].gameState);
     io.in(roomName).emit("next-player", data);
   });
-  //! IN GAME BUY IN (NOT DONE)
+
   //! LEAVE-GAME => CASHOUT (NOT DONE)
 
   //! HANDLE DISCONNECTED USER (NOT DONE)
