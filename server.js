@@ -267,6 +267,32 @@ io.on(`connection`, (socket) => {
       io.in(roomName).emit("update-stack", data, GAME_DATA[roomKey].pending);
     }
   );
+
+  //* IN-GAME CONFIRM (DONE)
+  socket.on(
+    "rebuy-confirm",
+    ({ userId }, { roomName }, { reqUsername, pending }, cb) => {
+      //* Validate is host
+      const roomKey = getRoomKey(io, roomName);
+      const { playerStatus } = GAME_DATA[roomKey];
+      if (!isHost(GAME_DATA[roomKey], userId))
+        return cb({ status: false, msg: "No Authorisation" });
+
+      GAME_DATA[roomKey].pending = removePlayerRequest(
+        GAME_DATA[roomKey].pending,
+        reqUsername
+      );
+      //* Pass playerStatus
+      const targetIndex = getPlayerIndex(playerStatus, reqUsername);
+      GAME_DATA[roomKey].gameState.playerStatus[targetIndex].topup(pending);
+      const data = getInBetweenState(GAME_DATA[roomKey].gameState);
+      io.in(roomName).emit(
+        "update-ingame-stack",
+        data,
+        GAME_DATA[roomKey].pending
+      );
+    }
+  );
   //* TOPUP-REJECT (DONE)
   socket.on(
     "topup-reject",

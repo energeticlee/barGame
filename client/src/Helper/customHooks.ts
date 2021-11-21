@@ -56,10 +56,18 @@ export const useWaitRoomSocket = (
     );
 
     socket.on("update-stack", (data: IUserInfo[], pendingData: IRequest[]) => {
-      console.log(data);
       useDisPlayerStatus(data);
       useDisReq(pendingData);
     });
+
+    socket.on(
+      "update-ingame-stack",
+      (data: InBetweenState, pendingData: IRequest[]) => {
+        console.log(data);
+        useDisInBetweenState(data);
+        useDisReq(pendingData);
+      }
+    );
 
     socket.emit("get-players", roomName, (res: ICallBack) => {
       if (res.status) useDisPlayerStatus(res.data);

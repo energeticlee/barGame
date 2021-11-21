@@ -37,7 +37,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 //* Prompt Host For Approval
 
-const ReqTable = () => {
+const ReqTable = ({ confirmEndPoint }: { confirmEndPoint: string }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const { state, useDisMessage } = UseStateContext();
   const { socket, userData, roomInfo, request } = state;
@@ -45,7 +45,7 @@ const ReqTable = () => {
 
   const handleConfirm = (req: IRequest) => {
     socket.emit(
-      "topup-confirm",
+      confirmEndPoint,
       userData,
       { roomName },
       req,

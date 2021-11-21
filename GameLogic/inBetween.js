@@ -11,7 +11,7 @@ class Player {
     return balance;
   };
 
-  topup = (value) => (this.stack += value);
+  topup = (value) => (this.stack += +value);
 }
 
 class InBetween {

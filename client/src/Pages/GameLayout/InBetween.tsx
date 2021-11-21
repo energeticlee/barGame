@@ -6,25 +6,16 @@ import { AccountBalanceWallet } from "@mui/icons-material";
 import BetDialog from "../../Components/BetDialog";
 import TopupDialog from "../../Components/TopupDialog";
 import { ICallBack } from "../../Helper/Interface";
+import ReqTable from "../../Components/ReqTable";
 
 const InBetween = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [betDialog, setBetDialog] = useState(false);
   // const { roomName } = useParams<{ roomName?: string }>();
-  const { state, useDisMessage, middleCard } = UseStateContext();
+  const { state, useDisMessage, middleCard, isHost } = UseStateContext();
   const { socket, userData, roomInfo } = state!;
   const { issuedCards, turn, playerStatus, pot, stake, minBuyin } =
     state.gameState!;
-  console.log(
-    "sstate",
-    issuedCards,
-    turn,
-    playerStatus,
-    userData,
-    pot,
-    stake,
-    minBuyin
-  );
   // {playerName, stack, winnings} = playerStatus[]
   //* If player turn, show option, else display waiting...
   //* Show player status on modal
@@ -33,11 +24,9 @@ const InBetween = () => {
   //* Display other stack
 
   //* Game Setup
-  console.log("playerStatus", playerStatus);
   const filteredUser = playerStatus.filter(
     (user) => user.playerName === userData?.username
   );
-  console.log("filteredUser", filteredUser);
 
   //* Check if turn, else disable button
   const isTurn = playerStatus[turn].playerName === userData?.username;
@@ -146,6 +135,7 @@ const InBetween = () => {
             HIT
           </Button>
         </Container>
+        {isHost && <ReqTable confirmEndPoint={"rebuy-confirm"} />}
       </Container>
     </Container>
   );
